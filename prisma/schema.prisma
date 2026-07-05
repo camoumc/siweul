@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// UTILISATEURS & ROLES
+// ============================================================
+
+enum Role {
+  USER
+  ENTREPRISE
+  POLICE
+  GENDARMERIE
+  MAIRIE
+  HOPITAL
+  ASSOCIATION
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Plan {
+  GRATUIT
+  PREMIUM
+  PRO
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  city          String?
+  avatarUrl     String?
+  role          Role      @default(USER)
+  plan          Plan      @default(GRATUIT)
+  points        Int       @default(0)
+  isBanned      Boolean   @default(false)
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reports       Report[]
+  messagesSent  Message[]      @relation("MessagesSent")
+  conversations ConversationParticipant[]
+  notifications Notification[]
+}
+
+// ============================================================
+// SIGNALEMENTS (module unique polymorphe pour les 5 catégories)
+// ============================================================
+
+enum ReportType {
+  OBJET_PERDU
+  OBJET_TROUVE
+  PERSONNE_DISPARUE
+  ANIMAL_PERDU
+  VEHICULE_VOLE
+  DOCUMENT_PERDU
+}
+
+enum ReportStatus {
+  ACTIVE
+  EN_VERIFICATION
+  RESOLU
+  ARCHIVE
+  SUPPRIME
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  type        ReportType
+  status      ReportStatus @default(ACTIVE)
+  title       String
+  description String
+
+  // Champs communs de localisation / temps
+  city        String
+  district    String?
+  latitude    Float?
+  longitude   Float?
+  eventDate   DateTime
+  eventTime   String?
+
+  // Champs génériques réutilisés selon la catégorie
+  category    String?      // ex: Electronique, Chat, Voiture, Passeport...
+  color       String?
+  brand       String?
+  serialOrVin String?      // numéro de série / VIN / plaque
+  reward      Int?         // récompense en FCFA
+
+  // Champs spécifiques "personne disparue"
+  personName    String?
+  personAge     Int?
+  personGender  String?
+  lastSeenDesc  String?
+  clothingDesc  String?
+  emergencyPhone String?
+
+  // Champs spécifiques "animal"
+  animalSpecies String?
+  microchip     String?
+  hasTattoo     Boolean?
+
+  // Vérification (masquer un détail pour confirmer le vrai propriétaire)
+  hiddenDetail  String?   // rempli uniquement par le déclarant, jamais montré publiquement
+
+  contactName   String?
+  contactPhone  String?
+  contactHidden Boolean   @default(true) // le tel n'est jamais public, messagerie interne uniquement
+
+  photos        Photo[]
+
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id])
+
+  matchesAsA    MatchScore[] @relation("MatchA")
+  matchesAsB    MatchScore[] @relation("MatchB")
+  conversations Conversation[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([type, status, city])
+  @@index([eventDate])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// MOTEUR DE CORRESPONDANCE (IA / scoring de similarité)
+// ============================================================
+
+model MatchScore {
+  id         String   @id @default(cuid())
+  reportAId  String
+  reportBId  String
+  reportA    Report   @relation("MatchA", fields: [reportAId], references: [id], onDelete: Cascade)
+  reportB    Report   @relation("MatchB", fields: [reportBId], references: [id], onDelete: Cascade)
+  score      Int      // pourcentage de similarité 0-100
+  reasons    String   // explication lisible du score
+  notified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([reportAId, reportBId])
+  @@index([score])
+}
+
+// ============================================================
+// MESSAGERIE SECURISEE
+// ============================================================
+
+model Conversation {
+  id           String   @id @default(cuid())
+  reportId     String
+  report       Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime @default(now())
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("MessagesSent", fields: [senderId], references: [id])
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+enum NotificationType {
+  MATCH_TROUVE
+  NOUVEAU_MESSAGE
+  REPORT_APPROUVE
+  REPORT_REJETE
+  SYSTEME
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+// ============================================================
+// STATISTIQUES SITE (pour dashboard admin, mis à jour par job)
+// ============================================================
+
+model SiteStat {
+  id            String   @id @default(cuid())
+  date          DateTime @unique @default(now())
+  totalReports  Int      @default(0)
+  totalResolved Int      @default(0)
+  newUsers      Int      @default(0)
+}
