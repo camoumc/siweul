@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+:root {
+  /* Surfaces */
+  --ink: #14173a;        /* indigo nuit - nav, footer, hero, sidebar admin */
+  --ink-2: #1e2350;      /* indigo legerement plus clair - cartes sur fond sombre */
+  --paper: #fbf9f4;      /* fond clair chaud (pas un cream generique) */
+  --paper-2: #f1ece0;    /* fond clair alterne pour sections */
+
+  /* Accents porteurs de sens */
+  --signal: #f2762e;     /* orange signal - action, "perdu", recherche active */
+  --signal-dark: #d4611f;
+  --found: #0e7263;      /* teal - "trouve", resolu, confiance */
+  --found-dark: #0a5a4e;
+  --alert: #d93636;      /* rouge - urgence, personnes disparues */
+  --gold: #e3b23c;       /* or - recompenses, gamification, badges */
+
+  --text: #1b1b22;
+  --text-muted: #5a5a68;
+  --border: #e7e2d3;
+
+  --background: var(--paper);
+  --foreground: var(--text);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-signal: var(--signal);
+  --color-signal-dark: var(--signal-dark);
+  --color-found: var(--found);
+  --color-found-dark: var(--found-dark);
+  --color-alert: var(--alert);
+  --color-gold: var(--gold);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-jetbrains);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--signal);
+  color: white;
+}
+
+/* Signature : anneaux de localisation (radar de recherche) */
+@keyframes siweul-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.siweul-radar-ring {
+  animation: siweul-ping 2.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siweul-radar-ring {
+    animation: none;
+  }
+}
+
+.leaflet-container {
+  font-family: var(--font-sans), ui-sans-serif, sans-serif;
+  border-radius: 1rem;
+}
