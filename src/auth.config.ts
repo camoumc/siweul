@@ -5,6 +5,13 @@ import type { NextAuthConfig } from "next-auth";
 // l'authentification réelle (Credentials + Prisma) vit dans src/auth.ts,
 // qui n'est chargé que côté Node.js (routes API, Server Components).
 export const authConfig = {
+  // NextAuth v5 lit AUTH_SECRET par défaut ; on accepte aussi NEXTAUTH_SECRET
+  // (nom historique v4) pour éviter l'erreur "Server error - problem with the
+  // server configuration" si une seule des deux variables est définie sur Vercel.
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  // Nécessaire pour accepter les requêtes venant d'un domaine personnalisé
+  // (ex. www.siweul.pro) plutôt que uniquement *.vercel.app
+  trustHost: true,
   pages: {
     signIn: "/connexion",
   },

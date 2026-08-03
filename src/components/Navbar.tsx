@@ -16,9 +16,10 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-ink/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-signal">
+          <span className="relative flex h-9 w-9 items-center justify-center">
             <span className="absolute inline-flex h-full w-full rounded-full border border-signal siweul-radar-ring" />
-            <span className="font-display text-sm font-bold text-white">S</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-badge.png" alt="SIWEUL" className="h-9 w-9 rounded-full" />
           </span>
           <span className="font-display text-xl font-semibold tracking-tight text-white">
             SIWEUL

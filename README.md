@@ -42,7 +42,7 @@ comptes tiers payants (Twilio, Meta Business, etc.) et peuvent etre ajoutees ens
 | Framework       | Next.js 16 (App Router) + TypeScript        |
 | Style           | Tailwind CSS v4                            |
 | Base de donnees | PostgreSQL (Neon — gratuit)                |
-| ORM             | Prisma 7                                   |
+| ORM             | Prisma 6                                   |
 | Authentification| NextAuth v5 (JWT, Credentials + bcrypt)    |
 | Stockage photos | Vercel Blob (gratuit)                      |
 | Carte           | Leaflet / React-Leaflet (OpenStreetMap)    |
@@ -118,11 +118,6 @@ Ouvrez http://localhost:3000.
 > `binaries.prisma.sh`. Si vous developpez derriere un pare-feu/proxy restrictif, cette
 > etape doit etre lancee sur une machine avec un acces internet complet (elle fonctionne
 > normalement sur Vercel et sur la plupart des ordinateurs).
->
-> **Prisma 7** : la config de connexion pour la CLI (db push, seed, studio) vit dans
-> `prisma.config.ts` a la racine (et non plus dans `prisma/schema.prisma`), et
-> `PrismaClient` est instancie avec un adaptateur `pg` dans `src/lib/prisma.ts`. C'est deja
-> configure, vous n'avez rien a faire d'autre que de renseigner `DATABASE_URL` dans `.env`.
 
 ---
 

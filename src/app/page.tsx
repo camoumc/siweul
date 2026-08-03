@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { REPORT_TYPE_ORDER, REPORT_TYPES } from "@/lib/reportConfig";
-import { Search, ShieldCheck, Users2, MapPinned, Sparkles, Radar } from "lucide-react";
+import { Search, ShieldCheck, Users2, MapPinned, Sparkles } from "lucide-react";
 
 async function getHomeStats() {
   try {
@@ -74,8 +74,9 @@ export default async function Home() {
             <span className="absolute h-full w-full rounded-full border border-signal/30 siweul-radar-ring" />
             <span className="absolute h-full w-full rounded-full border border-signal/30 siweul-radar-ring [animation-delay:0.9s]" />
             <span className="absolute h-full w-full rounded-full border border-signal/30 siweul-radar-ring [animation-delay:1.8s]" />
-            <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-ink-2 ring-8 ring-white/5">
-              <Radar size={56} className="text-signal" strokeWidth={1.4} />
+            <div className="relative flex h-40 w-40 items-center justify-center rounded-full bg-white ring-8 ring-white/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/logo-icon.png" alt="SIWEUL" className="h-28 w-28" />
             </div>
             <div className="absolute left-8 top-10 rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-ink shadow-xl">
               iPhone noir &middot; <span className="text-found">96% match</span>

@@ -7,9 +7,8 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-signal font-display text-sm font-bold text-white">
-              S
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-badge.png" alt="SIWEUL" className="h-8 w-8 rounded-full" />
             <span className="font-display text-lg font-semibold text-white">SIWEUL</span>
           </div>
           <p className="mt-3 max-w-xs text-sm">
