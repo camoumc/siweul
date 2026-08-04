@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { REPORT_TYPE_ORDER, REPORT_TYPES } from "@/lib/reportConfig";
 import { Search, ShieldCheck, Users2, MapPinned, Sparkles } from "lucide-react";
+import { getServerDictionary } from "@/i18n/server";
 
 async function getHomeStats() {
   try {
@@ -17,7 +18,8 @@ async function getHomeStats() {
 }
 
 export default async function Home() {
-  const stats = await getHomeStats();
+  const [stats, { dict }] = await Promise.all([getHomeStats(), getServerDictionary()]);
+  const h = dict.home;
 
   return (
     <div>
@@ -27,44 +29,40 @@ export default async function Home() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-wide text-white/70">
               <Sparkles size={14} className="text-gold" />
-              Intelligence collective + IA de correspondance
+              {h.badge}
             </span>
             <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-              Perdu quelque chose ?
+              {h.titleLine1}
               <br />
-              <span className="italic text-signal">On va le retrouver.</span>
+              <span className="italic text-signal">{h.titleLine2}</span>
             </h1>
-            <p className="mt-6 max-w-lg text-lg text-white/70">
-              SIWEUL &mdash; &laquo; retrouver &raquo; en wolof &mdash; connecte citoyens, commissariats, mairies,
-              hopitaux et entreprises autour d&apos;une seule carte pour ramener chaque objet,
-              chaque animal, chaque document et chaque personne la ou il ou elle doit etre.
-            </p>
+            <p className="mt-6 max-w-lg text-lg text-white/70">{h.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/signaler"
                 className="rounded-full bg-signal px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-signal/20 hover:bg-signal-dark"
               >
-                Faire un signalement
+                {h.ctaReport}
               </Link>
               <Link
                 href="/rechercher"
                 className="flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
               >
-                <Search size={16} /> Parcourir les annonces
+                <Search size={16} /> {h.ctaBrowse}
               </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-8 text-sm text-white/60">
               <div>
                 <p className="font-display text-2xl font-semibold text-white">{stats.total}+</p>
-                <p>Signalements publies</p>
+                <p>{h.statsPublished}</p>
               </div>
               <div>
                 <p className="font-display text-2xl font-semibold text-white">{stats.resolved}</p>
-                <p>Resolus grace a la communaute</p>
+                <p>{h.statsResolved}</p>
               </div>
               <div>
                 <p className="font-display text-2xl font-semibold text-white">{stats.users}+</p>
-                <p>Membres mobilises</p>
+                <p>{h.statsUsers}</p>
               </div>
             </div>
           </div>
@@ -92,10 +90,8 @@ export default async function Home() {
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="mb-10 flex items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-signal">Modules</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-text">
-              Une plateforme, six facons de retrouver
-            </h2>
+            <p className="text-sm font-semibold uppercase tracking-wide text-signal">{h.modulesEyebrow}</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold text-text">{h.modulesTitle}</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -115,7 +111,7 @@ export default async function Home() {
                 </h3>
                 <p className="mt-2 text-sm text-text-muted">{cfg.description}</p>
                 <span className={`mt-4 inline-block text-sm font-semibold ${cfg.color}`}>
-                  Signaler &rarr;
+                  {h.reportCta} &rarr;
                 </span>
               </Link>
             );
@@ -126,30 +122,13 @@ export default async function Home() {
       {/* COMMENT CA MARCHE */}
       <section className="bg-paper-2 py-20">
         <div className="mx-auto max-w-7xl px-6">
-          <p className="text-sm font-semibold uppercase tracking-wide text-signal">Fonctionnement</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-text">
-            Trois etapes pour retrouver ce qui compte
-          </h2>
+          <p className="text-sm font-semibold uppercase tracking-wide text-signal">{h.howEyebrow}</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold text-text">{h.howTitle}</h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
             {[
-              {
-                n: "01",
-                title: "Decrivez",
-                text: "Photo, couleur, marque, lieu, date : plus votre signalement est precis, plus l'IA trouvera vite une correspondance.",
-                icon: Search,
-              },
-              {
-                n: "02",
-                title: "L'IA compare",
-                text: "Notre moteur de correspondance analyse en continu tous les signalements actifs et calcule un score de similarite.",
-                icon: Sparkles,
-              },
-              {
-                n: "03",
-                title: "Vous echangez en securite",
-                text: "Messagerie interne, verification par question secrete ou QR code : aucune coordonnee n'est jamais exposee publiquement.",
-                icon: ShieldCheck,
-              },
+              { n: "01", title: h.step1Title, text: h.step1Text, icon: Search },
+              { n: "02", title: h.step2Title, text: h.step2Text, icon: Sparkles },
+              { n: "03", title: h.step3Title, text: h.step3Text, icon: ShieldCheck },
             ].map((s) => (
               <div key={s.n} className="rounded-3xl bg-white p-8 shadow-sm">
                 <span className="font-mono text-xs text-text-muted">{s.n}</span>
@@ -166,22 +145,14 @@ export default async function Home() {
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="grid gap-10 rounded-3xl bg-ink px-8 py-14 text-white md:grid-cols-2 md:px-14">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-gold">
-              Un reseau, pas une application de plus
-            </p>
-            <h2 className="mt-3 font-display text-3xl font-semibold">
-              Concu pour connecter tout un pays
-            </h2>
-            <p className="mt-4 text-white/70">
-              Commissariats, gendarmeries, mairies, hopitaux, aeroports, gares, hotels, ecoles et
-              entreprises peuvent rejoindre SIWEUL avec un espace dedie pour publier, verifier et
-              cloturer des signalements plus vite.
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-gold">{h.networkEyebrow}</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold">{h.networkTitle}</h2>
+            <p className="mt-4 text-white/70">{h.networkText}</p>
             <Link
               href="/entreprises"
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10"
             >
-              <Users2 size={16} /> Espace institutions &amp; entreprises
+              <Users2 size={16} /> {h.networkCta}
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm text-white/80">

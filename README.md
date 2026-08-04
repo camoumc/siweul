@@ -22,8 +22,15 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   points de gamification, **badges** et **score de confiance**.
 - **Espace Entreprise/Institution** (`/entreprise`) : creation d'organisation, gestion
   d'equipe, statistiques et liste des signalements publies au nom de l'organisation.
-- **Grille tarifaire admin** (`/admin/tarifs`) : prete pour la Phase 3 (paiement), tarifs
-  configurables par type d'objet/document — aucun paiement reel n'est encore débité.
+- **Paiement Stripe** (abonnements Premium/Pro) : `/admin/paiements` pour le suivi des
+  revenus. Repli automatique sur demande manuelle si Stripe n'est pas configure.
+- **Edition complete des annonces par l'admin** (`/admin/signalements/[id]`) : tous les
+  champs modifiables, reassignation du proprietaire, gestion des photos.
+- **3 langues en plus du francais** : anglais, espagnol, arabe (avec support RTL). Le
+  selecteur est dans la navbar. *Traduit pour l'instant : accueil, connexion, inscription,
+  navigation, pied de page — les autres pages restent en francais (voir section 6).*
+- **Grille tarifaire admin** (`/admin/tarifs`) : prete pour la facturation a l'usage
+  (recuperation d'objet), tarifs configurables par type d'objet/document.
 - **Moderation** (`/admin/moderation`) : signalement d'annonces frauduleuses par la
   communaute, traitement par l'admin.
 - **Classement communautaire** (points, badges).
@@ -122,9 +129,9 @@ npm run dev
 Ouvrez http://localhost:3000.
 
 > **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
-> modèles (Organization, UserBadge, ReportFlag, PricingRule). Après avoir remplacé vos
-> fichiers, relancez `npx prisma db push` (en local ET pensez à le faire aussi contre
-> votre base Neon de production) pour créer les nouvelles tables, puis
+> modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment). Après avoir
+> remplacé vos fichiers, relancez `npx prisma db push` (en local ET pensez à le faire
+> aussi contre votre base Neon de production) pour créer les nouvelles tables, puis
 > `npm run db:seed` pour initialiser la grille tarifaire par défaut.
 
 > **Important** : `npx prisma generate` telecharge les moteurs Prisma depuis
@@ -139,13 +146,45 @@ Ouvrez http://localhost:3000.
 Voir `.env.example`. Resume :
 
 - `DATABASE_URL` — chaine de connexion PostgreSQL (Neon).
-- `NEXTAUTH_SECRET` — secret de signature des sessions (`openssl rand -base64 32`).
+- `NEXTAUTH_SECRET` / `AUTH_SECRET` — meme valeur, secret de signature des sessions
+  (`openssl rand -base64 32`). Les deux noms sont acceptes.
 - `NEXTAUTH_URL` — URL publique du site.
 - `BLOB_READ_WRITE_TOKEN` — jeton Vercel Blob (Storage -> Blob -> onglet `.env.local`).
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_PRO`
+  — facultatifs, voir section 5bis.
+
+## 5bis. Configurer les paiements Stripe (facultatif)
+
+Le site fonctionne parfaitement sans Stripe configure : le bouton "Passer Premium"
+retombe automatiquement sur une demande manuelle traitee par un admin. Pour activer les
+vrais paiements :
+
+1. Creez un compte sur [dashboard.stripe.com](https://dashboard.stripe.com).
+   ⚠️ Stripe ne permet pas la creation directe d'un compte pour une entreprise
+   enregistree au Senegal a l'heure actuelle. Vous aurez besoin d'une entite eligible
+   (ex. societe US) ou d'envisager une alternative comme Flutterwave/Paystack (qui
+   operent nativement en Afrique de l'Ouest) — l'integration technique suit le meme
+   principe (session de paiement + webhook), n'hesitez pas a demander l'adaptation.
+2. Dans Stripe : **Produits** -> creez "SIWEUL Premium" et "SIWEUL Pro" avec un prix
+   recurrent mensuel dans la devise de votre choix. Copiez chaque **Price ID**
+   (`price_...`) dans `STRIPE_PRICE_PREMIUM` / `STRIPE_PRICE_PRO`.
+3. Dans **Developpeurs > Cles API** : copiez la cle secrete dans `STRIPE_SECRET_KEY`.
+4. Dans **Developpeurs > Webhooks** : ajoutez un endpoint
+   `https://votre-domaine/api/webhooks/stripe`, ecoutez au minimum les evenements
+   `checkout.session.completed` et `customer.subscription.deleted`, puis copiez le
+   secret de signature dans `STRIPE_WEBHOOK_SECRET`.
+5. Ajoutez ces 4 variables sur Vercel (Settings > Environment Variables) et redeployez.
 
 ---
 
 ## 6. Prochaines etapes suggerees
+
+0. **Traduction complete** : l'infrastructure EN/ES/AR est en place
+   (`src/i18n/`) mais seules les pages accueil/connexion/inscription + navigation/pied de
+   page sont traduites. Pour traduire une page existante : ajoutez ses textes dans les 4
+   fichiers `src/i18n/dictionaries/{fr,en,es,ar}.ts`, puis remplacez le texte en dur par
+   `dict.xxx` (via `useLocale()` dans un composant client, ou `getServerDictionary()`
+   dans un composant serveur).
 
 1. **Notifications SMS/WhatsApp** : brancher un fournisseur (Twilio, Infobip, WhatsApp
    Cloud API) dans `src/lib/runMatching.ts` et `src/app/api/conversations/[id]/messages/route.ts`.

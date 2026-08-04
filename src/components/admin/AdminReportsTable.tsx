@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { CheckCircle2, Trash2, Archive } from "lucide-react";
+import { CheckCircle2, Trash2, Archive, Pencil } from "lucide-react";
 import { REPORT_TYPES, STATUS_LABELS, type ReportTypeKey } from "@/lib/reportConfig";
 
 interface AdminReport {
@@ -100,6 +100,9 @@ export default function AdminReportsTable() {
                   <td className="px-4 py-3 text-text-muted">{STATUS_LABELS[r.status]}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
+                      <Link href={`/admin/signalements/${r.id}`} className="rounded-lg p-1.5 text-signal hover:bg-signal/10" title="Modifier">
+                        <Pencil size={14} />
+                      </Link>
                       <button onClick={() => updateStatus(r.id, "RESOLU")} className="rounded-lg p-1.5 text-found hover:bg-found/10" title="Marquer résolu">
                         <CheckCircle2 size={14} />
                       </button>

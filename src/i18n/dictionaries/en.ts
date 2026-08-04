@@ -1,0 +1,91 @@
+import type { Dictionary } from "./fr";
+
+const en: Dictionary = {
+  common: {
+    login: "Log in",
+    register: "Create account",
+    logout: "Log out",
+    mySpace: "My space",
+    businessSpace: "Business space",
+    admin: "Admin",
+    report: "Report",
+    search: "Search",
+    map: "Map",
+    leaderboard: "Leaderboard",
+    premium: "Premium",
+  },
+  nav: {
+    search: "Search",
+    map: "Map",
+    leaderboard: "Leaderboard",
+    premium: "Premium",
+  },
+  footer: {
+    tagline:
+      "\"Siweul\" means to find in Wolof. A community, a map, and collective intelligence to bring every object, animal, and person back where they belong.",
+    modules: "Modules",
+    platform: "Platform",
+    support: "Support",
+    interactiveMap: "Interactive map",
+    communityLeaderboard: "Community leaderboard",
+    premiumSubscription: "Premium subscription",
+    businessSpace: "Business & Institutions space",
+    howItWorks: "How it works",
+    security: "Security & verification",
+    contact: "Contact",
+    rights: "Find, together.",
+  },
+  home: {
+    badge: "Collective intelligence + AI matching",
+    titleLine1: "Lost something?",
+    titleLine2: "We'll find it.",
+    subtitle:
+      "SIWEUL — \"to find\" in Wolof — connects citizens, police stations, city halls, hospitals and businesses around a single map to bring every object, animal, document and person back where they belong.",
+    ctaReport: "Make a report",
+    ctaBrowse: "Browse listings",
+    statsPublished: "Reports published",
+    statsResolved: "Resolved by the community",
+    statsUsers: "Members involved",
+    modulesEyebrow: "Modules",
+    modulesTitle: "One platform, six ways to find",
+    reportCta: "Report",
+    howEyebrow: "How it works",
+    howTitle: "Three steps to find what matters",
+    step1Title: "Describe it",
+    step1Text:
+      "Photo, color, brand, location, date: the more precise your report, the faster the AI will find a match.",
+    step2Title: "AI compares",
+    step2Text:
+      "Our matching engine continuously analyzes all active reports and computes a similarity score.",
+    step3Title: "Chat safely",
+    step3Text:
+      "Internal messaging, secret-question or QR-code verification: your contact details are never shown publicly.",
+    networkEyebrow: "A network, not just another app",
+    networkTitle: "Built to connect an entire country",
+    networkText:
+      "Police stations, gendarmeries, city halls, hospitals, airports, train stations, hotels, schools and businesses can join SIWEUL with a dedicated space to publish, verify and close reports faster.",
+    networkCta: "Institutions & business space",
+  },
+  auth: {
+    loginTitle: "Welcome back",
+    loginSubtitle: "Log in to your SIWEUL account.",
+    email: "Email",
+    password: "Password",
+    loginButton: "Log in",
+    loginLoading: "Logging in...",
+    noAccount: "Don't have an account yet?",
+    signUpLink: "Sign up",
+    loginError: "Incorrect email or password.",
+    registerTitle: "Join the community",
+    registerSubtitle: "Create your free account to report and find.",
+    fullName: "Full name",
+    phone: "Phone",
+    city: "City",
+    registerButton: "Create my account",
+    registerLoading: "Creating...",
+    alreadyRegistered: "Already registered?",
+    loginLink: "Log in",
+  },
+};
+
+export default en;

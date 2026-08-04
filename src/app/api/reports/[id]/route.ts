@@ -39,13 +39,62 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const allowedFields = ["status", "title", "description"] as const;
+
+  const OWNER_FIELDS = ["status", "title", "description"] as const;
+  const ADMIN_ONLY_FIELDS = [
+    "status",
+    "title",
+    "description",
+    "city",
+    "district",
+    "latitude",
+    "longitude",
+    "eventDate",
+    "eventTime",
+    "category",
+    "color",
+    "brand",
+    "serialOrVin",
+    "reward",
+    "personName",
+    "personAge",
+    "personGender",
+    "lastSeenDesc",
+    "clothingDesc",
+    "emergencyPhone",
+    "animalSpecies",
+    "microchip",
+    "hasTattoo",
+    "contactName",
+    "contactPhone",
+  ] as const;
+
+  const allowedFields = isAdmin ? ADMIN_ONLY_FIELDS : OWNER_FIELDS;
   const data: Record<string, unknown> = {};
   for (const field of allowedFields) {
     if (field in body) data[field] = body[field];
   }
+  if (data.eventDate) data.eventDate = new Date(data.eventDate as string);
 
-  const updated = await prisma.report.update({ where: { id }, data });
+  // Admin uniquement : réassigner le propriétaire via son email, et/ou
+  // remplacer entièrement la liste des photos.
+  if (isAdmin && body.ownerEmail) {
+    const newOwner = await prisma.user.findUnique({ where: { email: body.ownerEmail } });
+    if (!newOwner) {
+      return NextResponse.json({ error: "Aucun utilisateur avec cet email." }, { status: 404 });
+    }
+    data.ownerId = newOwner.id;
+  }
+  if (isAdmin && Array.isArray(body.photos)) {
+    await prisma.photo.deleteMany({ where: { reportId: id } });
+    if (body.photos.length > 0) {
+      await prisma.photo.createMany({
+        data: (body.photos as string[]).map((url) => ({ reportId: id, url })),
+      });
+    }
+  }
+
+  const updated = await prisma.report.update({ where: { id }, data, include: { photos: true } });
 
   // Si le signalement vient d'être marqué résolu, on récompense le
   // déclarant et toute personne ayant participé à une conversation liée

@@ -1,0 +1,91 @@
+import type { Dictionary } from "./fr";
+
+const es: Dictionary = {
+  common: {
+    login: "Iniciar sesión",
+    register: "Crear cuenta",
+    logout: "Cerrar sesión",
+    mySpace: "Mi espacio",
+    businessSpace: "Espacio empresarial",
+    admin: "Admin",
+    report: "Publicar",
+    search: "Buscar",
+    map: "Mapa",
+    leaderboard: "Clasificación",
+    premium: "Premium",
+  },
+  nav: {
+    search: "Buscar",
+    map: "Mapa",
+    leaderboard: "Clasificación",
+    premium: "Premium",
+  },
+  footer: {
+    tagline:
+      "«Siweul» significa encontrar en wolof. Una comunidad, un mapa y la inteligencia colectiva para devolver cada objeto, animal y persona a su lugar.",
+    modules: "Módulos",
+    platform: "Plataforma",
+    support: "Ayuda",
+    interactiveMap: "Mapa interactivo",
+    communityLeaderboard: "Clasificación comunitaria",
+    premiumSubscription: "Suscripción Premium",
+    businessSpace: "Espacio Empresas e Instituciones",
+    howItWorks: "Cómo funciona",
+    security: "Seguridad y verificación",
+    contact: "Contacto",
+    rights: "Encontrar, juntos.",
+  },
+  home: {
+    badge: "Inteligencia colectiva + IA de coincidencia",
+    titleLine1: "¿Perdiste algo?",
+    titleLine2: "Lo vamos a encontrar.",
+    subtitle:
+      "SIWEUL — «encontrar» en wolof — conecta a ciudadanos, comisarías, ayuntamientos, hospitales y empresas en un solo mapa para devolver cada objeto, animal, documento y persona a su lugar.",
+    ctaReport: "Publicar un aviso",
+    ctaBrowse: "Ver avisos",
+    statsPublished: "Avisos publicados",
+    statsResolved: "Resueltos gracias a la comunidad",
+    statsUsers: "Miembros movilizados",
+    modulesEyebrow: "Módulos",
+    modulesTitle: "Una plataforma, seis formas de encontrar",
+    reportCta: "Publicar",
+    howEyebrow: "Funcionamiento",
+    howTitle: "Tres pasos para encontrar lo que importa",
+    step1Title: "Describe",
+    step1Text:
+      "Foto, color, marca, lugar, fecha: cuanto más preciso sea tu aviso, más rápido la IA encontrará una coincidencia.",
+    step2Title: "La IA compara",
+    step2Text:
+      "Nuestro motor de coincidencias analiza continuamente todos los avisos activos y calcula una puntuación de similitud.",
+    step3Title: "Conversa con seguridad",
+    step3Text:
+      "Mensajería interna, verificación por pregunta secreta o código QR: tus datos de contacto nunca se muestran públicamente.",
+    networkEyebrow: "Una red, no una app más",
+    networkTitle: "Diseñado para conectar todo un país",
+    networkText:
+      "Comisarías, gendarmerías, ayuntamientos, hospitales, aeropuertos, estaciones, hoteles, escuelas y empresas pueden unirse a SIWEUL con un espacio dedicado para publicar, verificar y cerrar avisos más rápido.",
+    networkCta: "Espacio de instituciones y empresas",
+  },
+  auth: {
+    loginTitle: "Nos alegra verte de nuevo",
+    loginSubtitle: "Inicia sesión en tu cuenta SIWEUL.",
+    email: "Correo electrónico",
+    password: "Contraseña",
+    loginButton: "Iniciar sesión",
+    loginLoading: "Iniciando sesión...",
+    noAccount: "¿Aún no tienes cuenta?",
+    signUpLink: "Regístrate",
+    loginError: "Correo electrónico o contraseña incorrectos.",
+    registerTitle: "Únete a la comunidad",
+    registerSubtitle: "Crea tu cuenta gratuita para publicar y encontrar.",
+    fullName: "Nombre completo",
+    phone: "Teléfono",
+    city: "Ciudad",
+    registerButton: "Crear mi cuenta",
+    registerLoading: "Creando...",
+    alreadyRegistered: "¿Ya tienes cuenta?",
+    loginLink: "Inicia sesión",
+  },
+};
+
+export default es;

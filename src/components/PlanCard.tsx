@@ -33,6 +33,21 @@ export default function PlanCard({
       return;
     }
     setLoading(true);
+
+    // 1. On tente d'abord un vrai paiement Stripe.
+    const checkoutRes = await fetch("/api/checkout/subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    if (checkoutRes.ok) {
+      const { url } = await checkoutRes.json();
+      window.location.href = url;
+      return; // redirection en cours, pas besoin de setLoading(false)
+    }
+
+    // 2. Si Stripe n'est pas encore configuré (503) ou toute autre erreur,
+    // on retombe sur la demande manuelle traitée par un admin.
     const res = await fetch("/api/upgrade-request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

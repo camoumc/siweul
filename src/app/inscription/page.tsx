@@ -6,9 +6,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { SENEGAL_CITIES } from "@/lib/reportConfig";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { dict } = useLocale();
+  const a = dict.auth;
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", city: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,16 +49,14 @@ export default function RegisterPage() {
       <div className="mb-8 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/logo-badge.png" alt="SIWEUL" className="mx-auto h-14 w-14" />
-        <h1 className="mt-4 font-display text-2xl font-semibold text-text">Rejoignez la communauté</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Créez votre compte gratuit pour signaler et retrouver.
-        </p>
+        <h1 className="mt-4 font-display text-2xl font-semibold text-text">{a.registerTitle}</h1>
+        <p className="mt-1 text-sm text-text-muted">{a.registerSubtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm">
         {error && <p className="rounded-xl bg-alert/10 px-3 py-2 text-sm text-alert">{error}</p>}
         <div>
-          <label className="text-sm font-medium text-text">Nom complet</label>
+          <label className="text-sm font-medium text-text">{a.fullName}</label>
           <input
             required
             value={form.name}
@@ -64,7 +65,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-text">Email</label>
+          <label className="text-sm font-medium text-text">{a.email}</label>
           <input
             type="email"
             required
@@ -75,7 +76,7 @@ export default function RegisterPage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm font-medium text-text">Téléphone</label>
+            <label className="text-sm font-medium text-text">{a.phone}</label>
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -84,7 +85,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-text">Ville</label>
+            <label className="text-sm font-medium text-text">{a.city}</label>
             <select
               value={form.city}
               onChange={(e) => setForm({ ...form, city: e.target.value })}
@@ -98,7 +99,7 @@ export default function RegisterPage() {
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium text-text">Mot de passe</label>
+          <label className="text-sm font-medium text-text">{a.password}</label>
           <input
             type="password"
             required
@@ -113,14 +114,14 @@ export default function RegisterPage() {
           disabled={loading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-signal px-4 py-2.5 font-semibold text-white hover:bg-signal-dark disabled:opacity-60"
         >
-          <UserPlus size={16} /> {loading ? "Création..." : "Créer mon compte"}
+          <UserPlus size={16} /> {loading ? a.registerLoading : a.registerButton}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-text-muted">
-        Déjà inscrit ?{" "}
+        {a.alreadyRegistered}{" "}
         <Link href="/connexion" className="font-semibold text-signal">
-          Connectez-vous
+          {a.loginLink}
         </Link>
       </p>
     </div>

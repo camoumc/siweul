@@ -5,10 +5,13 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
+import { useLocale } from "@/components/LocaleProvider";
 
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const { dict } = useLocale();
+  const a = dict.auth;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +28,7 @@ function LoginForm() {
     });
     setLoading(false);
     if (res?.error) {
-      setError("Email ou mot de passe incorrect.");
+      setError(a.loginError);
       return;
     }
     router.push(params.get("callbackUrl") ?? "/tableau-de-bord");
@@ -37,8 +40,8 @@ function LoginForm() {
       <div className="mb-8 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/logo-badge.png" alt="SIWEUL" className="mx-auto h-14 w-14" />
-        <h1 className="mt-4 font-display text-2xl font-semibold text-text">Content de vous revoir</h1>
-        <p className="mt-1 text-sm text-text-muted">Connectez-vous à votre espace SIWEUL.</p>
+        <h1 className="mt-4 font-display text-2xl font-semibold text-text">{a.loginTitle}</h1>
+        <p className="mt-1 text-sm text-text-muted">{a.loginSubtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-border bg-white p-6 shadow-sm">
@@ -46,7 +49,7 @@ function LoginForm() {
           <p className="rounded-xl bg-alert/10 px-3 py-2 text-sm text-alert">{error}</p>
         )}
         <div>
-          <label className="text-sm font-medium text-text">Email</label>
+          <label className="text-sm font-medium text-text">{a.email}</label>
           <input
             type="email"
             required
@@ -57,7 +60,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-text">Mot de passe</label>
+          <label className="text-sm font-medium text-text">{a.password}</label>
           <input
             type="password"
             required
@@ -72,14 +75,14 @@ function LoginForm() {
           disabled={loading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-signal px-4 py-2.5 font-semibold text-white hover:bg-signal-dark disabled:opacity-60"
         >
-          <LogIn size={16} /> {loading ? "Connexion..." : "Se connecter"}
+          <LogIn size={16} /> {loading ? a.loginLoading : a.loginButton}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-text-muted">
-        Pas encore de compte ?{" "}
+        {a.noAccount}{" "}
         <Link href="/inscription" className="font-semibold text-signal">
-          Inscrivez-vous
+          {a.signUpLink}
         </Link>
       </p>
     </div>

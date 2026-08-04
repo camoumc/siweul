@@ -51,6 +51,10 @@ model User {
   notifications Notification[]
   badges        UserBadge[]
   flagsFiled    ReportFlag[]
+  payments      Payment[]
+
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
 
   organizationId   String?
   organization     Organization?  @relation("OrgMembers", fields: [organizationId], references: [id])
@@ -302,4 +306,27 @@ model PricingRule {
   amount    Int      // en FCFA
   active    Boolean  @default(true)
   updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// PAIEMENTS (Stripe — abonnements Premium/Pro)
+// ============================================================
+
+enum PaymentStatus {
+  PAYE
+  ECHOUE
+  REMBOURSE
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  provider    String        // "stripe"
+  providerRef String        @unique // id session/paiement Stripe
+  amount      Int           // en plus petite unite de devise (ex: centimes)
+  currency    String
+  plan        String?       // PREMIUM | PRO si abonnement
+  status      PaymentStatus @default(PAYE)
+  createdAt   DateTime      @default(now())
 }
