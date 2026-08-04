@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { awardPoints, awardBadge } from "@/lib/points";
 
 export async function GET(
   _req: Request,
@@ -45,6 +46,24 @@ export async function PATCH(
   }
 
   const updated = await prisma.report.update({ where: { id }, data });
+
+  // Si le signalement vient d'être marqué résolu, on récompense le
+  // déclarant et toute personne ayant participé à une conversation liée
+  // (celle qui a probablement aidé à retrouver l'objet/la personne).
+  if (data.status === "RESOLU" && report.status !== "RESOLU") {
+    await awardPoints(report.ownerId, 20, "Signalement résolu");
+
+    const helpers = await prisma.conversationParticipant.findMany({
+      where: { conversation: { reportId: id }, userId: { not: report.ownerId } },
+      select: { userId: true },
+      distinct: ["userId"],
+    });
+    for (const h of helpers) {
+      await awardPoints(h.userId, 30, "A aidé à résoudre un signalement");
+      await awardBadge(h.userId, "AIDANT");
+    }
+  }
+
   return NextResponse.json(updated);
 }
 

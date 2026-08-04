@@ -2,9 +2,14 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { REPORT_TYPES, type ReportTypeKey } from "@/lib/reportConfig";
-import { MapPin, Calendar, Gift, ShieldCheck, User } from "lucide-react";
+import { computeTrustScore } from "@/lib/trustScore";
+import { MapPin, Calendar, Gift, ShieldCheck, User, Building2 } from "lucide-react";
 import ContactButton from "@/components/ContactButton";
 import ShareButtons from "@/components/ShareButtons";
+import TrustBadge from "@/components/TrustBadge";
+import BadgeIcon from "@/components/BadgeIcon";
+import FlagButton from "@/components/FlagButton";
+import { getBadge } from "@/lib/badges";
 
 export default async function AnnonceDetail({
   params,
@@ -18,11 +23,35 @@ export default async function AnnonceDetail({
     where: { id },
     include: {
       photos: true,
-      owner: { select: { id: true, name: true, isVerified: true, createdAt: true } },
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+          createdAt: true,
+          points: true,
+          badges: { select: { badgeKey: true } },
+        },
+      },
+      organization: { select: { name: true, type: true, isVerified: true } },
     },
   });
 
   if (!report) notFound();
+
+  const resolvedReportsCount = await prisma.report.count({
+    where: { ownerId: report.owner.id, status: "RESOLU" },
+  });
+  const accountAgeDays = Math.floor(
+    // eslint-disable-next-line react-hooks/purity -- calcul serveur (Server Component), pas de rendu React concerné
+    (Date.now() - new Date(report.owner.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const trustScore = computeTrustScore({
+    points: report.owner.points,
+    isVerified: report.owner.isVerified,
+    accountAgeDays,
+    resolvedReportsCount,
+  });
 
   const cfg = REPORT_TYPES[report.type as ReportTypeKey];
   const isOwner = session?.user?.id === report.ownerId;
@@ -103,7 +132,7 @@ export default async function AnnonceDetail({
           </dl>
 
           <div className="mt-6">
-            <ShareButtons title={`SIWEUL — ${report.title}`} url={url} />
+            <ShareButtons title={`SIWEUL — ${report.title}`} url={url} reportId={report.id} />
           </div>
         </div>
 
@@ -123,9 +152,47 @@ export default async function AnnonceDetail({
                 <ShieldCheck size={16} className="ml-auto text-found" />
               )}
             </div>
+
+            {report.organization && (
+              <div className="mt-3 flex items-center gap-2 rounded-xl bg-paper-2 px-3 py-2 text-xs">
+                <Building2 size={14} className="text-signal" />
+                <span className="font-semibold text-text">{report.organization.name}</span>
+                <span className="text-text-muted">· {report.organization.type}</span>
+                {report.organization.isVerified && <ShieldCheck size={12} className="ml-auto text-found" />}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <TrustBadge score={trustScore} isVerified={report.owner.isVerified} />
+            </div>
+
+            {report.owner.badges.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {report.owner.badges.map((b) => {
+                  const def = getBadge(b.badgeKey);
+                  if (!def) return null;
+                  return (
+                    <span
+                      key={b.badgeKey}
+                      title={def.description}
+                      className="flex items-center gap-1 rounded-full bg-paper-2 px-2 py-1 text-[11px] font-medium text-text"
+                    >
+                      <BadgeIcon name={def.icon} size={12} /> {def.label}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="mt-4">
               <ContactButton reportId={report.id} isOwner={isOwner} />
             </div>
+
+            {!isOwner && (
+              <div className="mt-3 border-t border-border pt-3">
+                <FlagButton reportId={report.id} />
+              </div>
+            )}
           </div>
 
           <div className="rounded-3xl bg-ink p-6 text-white/80">

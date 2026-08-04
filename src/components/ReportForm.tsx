@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
@@ -18,6 +18,16 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
   const cfg = REPORT_TYPES[type];
   const router = useRouter();
   const { status } = useSession();
+  const [orgName, setOrgName] = useState<string | null>(null);
+  const [publishAsOrg, setPublishAsOrg] = useState(false);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/organizations")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((org) => setOrgName(org?.name ?? null))
+      .catch(() => {});
+  }, [status]);
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
@@ -107,6 +117,7 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
       contactName: form.contactName || undefined,
       contactPhone: form.contactPhone || undefined,
       photos,
+      publishAsOrganization: publishAsOrg,
     };
 
     const res = await fetch("/api/reports", {
@@ -316,6 +327,18 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
             <input value={form.contactPhone} onChange={(e) => set("contactPhone", e.target.value)} className={inputClass} />
           </div>
         </div>
+
+        {orgName && (
+          <label className="flex items-center gap-2 rounded-xl bg-paper-2 px-4 py-3 text-sm text-text">
+            <input
+              type="checkbox"
+              checked={publishAsOrg}
+              onChange={(e) => setPublishAsOrg(e.target.checked)}
+              className="h-4 w-4 rounded border-border"
+            />
+            Publier au nom de <strong>{orgName}</strong>
+          </label>
+        )}
 
         <button
           type="submit"

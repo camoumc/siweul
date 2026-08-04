@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { reportSchema } from "@/lib/validators";
 import { runMatchingForReport } from "@/lib/runMatching";
+import { awardPoints, awardBadge } from "@/lib/points";
 import type { Prisma, ReportType } from "@prisma/client";
 
 export async function POST(req: Request) {
@@ -20,13 +21,25 @@ export async function POST(req: Request) {
     );
   }
 
-  const { photos, eventDate, ...rest } = parsed.data;
+  const { photos, eventDate, publishAsOrganization, ...rest } = parsed.data;
+
+  // Si l'utilisateur appartient à une organisation et a coché la case,
+  // on rattache le signalement à l'organisation (visible dans son dashboard).
+  let organizationId: string | undefined;
+  if (publishAsOrganization) {
+    const me = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { organizationId: true, ownedOrganization: { select: { id: true } } },
+    });
+    organizationId = me?.organizationId ?? me?.ownedOrganization?.id ?? undefined;
+  }
 
   const report = await prisma.report.create({
     data: {
       ...rest,
       eventDate: new Date(eventDate),
       ownerId: session.user.id,
+      organizationId,
       photos: photos?.length
         ? { create: photos.map((url) => ({ url })) }
         : undefined,
@@ -35,10 +48,13 @@ export async function POST(req: Request) {
   });
 
   // Récompense de points (gamification) pour l'engagement communautaire
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { points: { increment: 10 } },
+  const priorReports = await prisma.report.count({
+    where: { ownerId: session.user.id, id: { not: report.id } },
   });
+  await awardPoints(session.user.id, 10, "Nouveau signalement");
+  if (priorReports === 0) {
+    await awardBadge(session.user.id, "PREMIER_SIGNALEMENT");
+  }
 
   // Lancement du moteur de correspondance IA (asynchrone, ne bloque pas la réponse)
   runMatchingForReport(report.id).catch((e) => console.error("Matching error:", e));

@@ -19,7 +19,13 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   publiquement ; un filtre supprime automatiquement les numeros tapes dans le chat.
 - **Comptes utilisateurs** avec roles (utilisateur, entreprise, police, gendarmerie,
   mairie, hopital, association, admin, super-admin), plans (gratuit/premium/pro),
-  points de gamification.
+  points de gamification, **badges** et **score de confiance**.
+- **Espace Entreprise/Institution** (`/entreprise`) : creation d'organisation, gestion
+  d'equipe, statistiques et liste des signalements publies au nom de l'organisation.
+- **Grille tarifaire admin** (`/admin/tarifs`) : prete pour la Phase 3 (paiement), tarifs
+  configurables par type d'objet/document — aucun paiement reel n'est encore débité.
+- **Moderation** (`/admin/moderation`) : signalement d'annonces frauduleuses par la
+  communaute, traitement par l'admin.
 - **Classement communautaire** (points, badges).
 - **Notifications** en application (cloche + centre de notifications).
 - **Back-office admin** : statistiques (graphiques), gestion des utilisateurs (bannir,
@@ -29,9 +35,10 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   teal "trouve"), 100 % responsive.
 
 ### Non inclus dans cette V1 (voir section 6 "Prochaines etapes")
-Envoi de SMS/WhatsApp/Telegram reels, publication automatique sur les reseaux sociaux,
-application mobile Flutter, OTP/QR code de verification, 2FA — ces briques demandent des
-comptes tiers payants (Twilio, Meta Business, etc.) et peuvent etre ajoutees ensuite.
+Paiement reel (Stripe/Wave/Orange Money), frais de recuperation d'objet factures,
+recompenses financieres avec commission SIWEUL, programme Ambassadeurs, reconnaissance
+d'image par IA, verification d'identite formelle, envoi de SMS/WhatsApp/Telegram reels,
+publication automatique sur les reseaux sociaux, application mobile Flutter.
 
 ---
 
@@ -113,6 +120,12 @@ npm run db:seed
 npm run dev
 ```
 Ouvrez http://localhost:3000.
+
+> **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
+> modèles (Organization, UserBadge, ReportFlag, PricingRule). Après avoir remplacé vos
+> fichiers, relancez `npx prisma db push` (en local ET pensez à le faire aussi contre
+> votre base Neon de production) pour créer les nouvelles tables, puis
+> `npm run db:seed` pour initialiser la grille tarifaire par défaut.
 
 > **Important** : `npx prisma generate` telecharge les moteurs Prisma depuis
 > `binaries.prisma.sh`. Si vous developpez derriere un pare-feu/proxy restrictif, cette

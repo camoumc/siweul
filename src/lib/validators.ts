@@ -43,6 +43,7 @@ export const reportSchema = z.object({
   contactName: z.string().optional(),
   contactPhone: z.string().optional(),
   photos: z.array(z.string()).optional(),
+  publishAsOrganization: z.boolean().optional(),
 });
 
 export type ReportInput = z.infer<typeof reportSchema>;

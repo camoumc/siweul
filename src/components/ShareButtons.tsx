@@ -3,10 +3,29 @@
 import { Share2, MessageCircle, Send, Link2 } from "lucide-react";
 import { useState } from "react";
 
-export default function ShareButtons({ title, url }: { title: string; url: string }) {
+export default function ShareButtons({
+  title,
+  url,
+  reportId,
+}: {
+  title: string;
+  url: string;
+  reportId?: string;
+}) {
   const [copied, setCopied] = useState(false);
   const encodedUrl = encodeURIComponent(url);
   const encodedText = encodeURIComponent(title);
+
+  const trackShare = () => {
+    if (!reportId) return;
+    // Attribution de points "au clic" (best-effort, non anti-fraude) — simple
+    // levier de gamification pour encourager le relais des annonces.
+    fetch("/api/points/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportId }),
+    }).catch(() => {});
+  };
 
   const links = [
     {
@@ -34,6 +53,7 @@ export default function ShareButtons({ title, url }: { title: string; url: strin
           href={l.href}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={trackShare}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-muted hover:border-signal hover:text-signal"
           aria-label={`Partager sur ${l.label}`}
         >
@@ -44,6 +64,7 @@ export default function ShareButtons({ title, url }: { title: string; url: strin
         onClick={() => {
           navigator.clipboard.writeText(url);
           setCopied(true);
+          trackShare();
           setTimeout(() => setCopied(false), 2000);
         }}
         className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-muted hover:border-signal hover:text-signal"

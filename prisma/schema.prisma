@@ -49,6 +49,44 @@ model User {
   messagesSent  Message[]      @relation("MessagesSent")
   conversations ConversationParticipant[]
   notifications Notification[]
+  badges        UserBadge[]
+  flagsFiled    ReportFlag[]
+
+  organizationId   String?
+  organization     Organization?  @relation("OrgMembers", fields: [organizationId], references: [id])
+  ownedOrganization Organization? @relation("OrgOwner")
+}
+
+// ============================================================
+// ORGANISATIONS (comptes Entreprises / Institutions)
+// ============================================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // Aeroport, Hotel, Universite, Mairie, Commissariat...
+  logoUrl     String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  ownerId     String   @unique
+  owner       User     @relation("OrgOwner", fields: [ownerId], references: [id])
+  members     User[]   @relation("OrgMembers")
+  reports     Report[]
+}
+
+// ============================================================
+// BADGES (gamification)
+// ============================================================
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeKey String
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeKey])
 }
 
 // ============================================================
@@ -119,9 +157,13 @@ model Report {
   ownerId       String
   owner         User      @relation(fields: [ownerId], references: [id])
 
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
   matchesAsA    MatchScore[] @relation("MatchA")
   matchesAsB    MatchScore[] @relation("MatchB")
   conversations Conversation[]
+  flags         ReportFlag[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -225,4 +267,39 @@ model SiteStat {
   totalReports  Int      @default(0)
   totalResolved Int      @default(0)
   newUsers      Int      @default(0)
+}
+
+// ============================================================
+// MODERATION (signalement d'annonces frauduleuses/abusives)
+// ============================================================
+
+enum FlagStatus {
+  EN_ATTENTE
+  TRAITE
+  REJETE
+}
+
+model ReportFlag {
+  id         String     @id @default(cuid())
+  reportId   String
+  report     Report     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User       @relation(fields: [reporterId], references: [id])
+  reason     String
+  status     FlagStatus @default(EN_ATTENTE)
+  createdAt  DateTime   @default(now())
+}
+
+// ============================================================
+// GRILLE TARIFAIRE (configurable par l'admin — préparation Phase 3 paiement)
+// ============================================================
+
+model PricingRule {
+  id        String   @id @default(cuid())
+  key       String   @unique // ex: "CNI", "PASSEPORT", "TELEPHONE", "VOITURE"
+  label     String
+  category  String   // "Document administratif" | "Objet" | "Vehicule"
+  amount    Int      // en FCFA
+  active    Boolean  @default(true)
+  updatedAt DateTime @updatedAt
 }

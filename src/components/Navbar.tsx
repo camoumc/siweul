@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, Search, PlusCircle, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { Menu, X, Search, PlusCircle, LayoutDashboard, ShieldCheck, Building2 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 export default function Navbar() {
@@ -11,6 +11,14 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPER_ADMIN";
+  const isInstitution = [
+    "ENTREPRISE",
+    "POLICE",
+    "GENDARMERIE",
+    "MAIRIE",
+    "HOPITAL",
+    "ASSOCIATION",
+  ].includes(session?.user?.role ?? "");
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-ink/95 backdrop-blur">
@@ -45,6 +53,14 @@ export default function Navbar() {
           {status === "authenticated" ? (
             <>
               <NotificationBell />
+              {isInstitution && (
+                <Link
+                  href="/entreprise"
+                  className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
+                >
+                  <Building2 size={16} /> Espace Entreprise
+                </Link>
+              )}
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -119,6 +135,11 @@ export default function Navbar() {
                 <Link href="/tableau-de-bord" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
                   Mon espace
                 </Link>
+                {isInstitution && (
+                  <Link href="/entreprise" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
+                    Espace Entreprise
+                  </Link>
+                )}
                 {isAdmin && (
                   <Link href="/admin" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
                     Admin

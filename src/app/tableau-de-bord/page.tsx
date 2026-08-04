@@ -3,14 +3,18 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { REPORT_TYPES, STATUS_LABELS, type ReportTypeKey } from "@/lib/reportConfig";
+import { computeTrustScore } from "@/lib/trustScore";
+import { getBadge } from "@/lib/badges";
 import { Trophy, PlusCircle, MessageSquare } from "lucide-react";
 import ReportRowActions from "@/components/ReportRowActions";
+import TrustBadge from "@/components/TrustBadge";
+import BadgeIcon from "@/components/BadgeIcon";
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/connexion?callbackUrl=/tableau-de-bord");
 
-  const [user, reports, conversations] = await Promise.all([
+  const [user, reports, conversations, earnedBadges] = await Promise.all([
     prisma.user.findUnique({ where: { id: session.user.id } }),
     prisma.report.findMany({
       where: { ownerId: session.user.id },
@@ -26,10 +30,21 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
       take: 10,
     }),
+    prisma.userBadge.findMany({ where: { userId: session.user.id } }),
   ]);
 
   const activeCount = reports.filter((r) => r.status === "ACTIVE").length;
   const resolvedCount = reports.filter((r) => r.status === "RESOLU").length;
+  const accountAgeDays = user
+    ? // eslint-disable-next-line react-hooks/purity -- calcul serveur (Server Component), pas de rendu React concerné
+      Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const trustScore = computeTrustScore({
+    points: user?.points ?? 0,
+    isVerified: user?.isVerified ?? false,
+    accountAgeDays,
+    resolvedReportsCount: resolvedCount,
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -60,6 +75,34 @@ export default async function DashboardPage() {
             <p className="text-xs text-text-muted">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mb-10 rounded-2xl border border-border bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-[220px] flex-1">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Score de confiance
+            </p>
+            <TrustBadge score={trustScore} isVerified={user?.isVerified ?? false} />
+          </div>
+          {earnedBadges.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {earnedBadges.map((b) => {
+                const def = getBadge(b.badgeKey);
+                if (!def) return null;
+                return (
+                  <span
+                    key={b.badgeKey}
+                    title={def.description}
+                    className="flex items-center gap-1 rounded-full bg-paper-2 px-2.5 py-1 text-xs font-medium text-text"
+                  >
+                    <BadgeIcon name={def.icon} size={13} /> {def.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">

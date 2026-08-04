@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { LayoutDashboard, Users, FileWarning, ArrowLeftCircle } from "lucide-react";
+import { LayoutDashboard, Users, FileWarning, ArrowLeftCircle, Tag, ShieldAlert } from "lucide-react";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -11,6 +11,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const navItems = [
     { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
     { href: "/admin/signalements", label: "Signalements", icon: FileWarning },
+    { href: "/admin/moderation", label: "Modération (abus)", icon: ShieldAlert },
+    { href: "/admin/tarifs", label: "Grille tarifaire", icon: Tag },
     { href: "/admin/utilisateurs", label: "Utilisateurs", icon: Users },
   ];
 
