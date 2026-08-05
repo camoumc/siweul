@@ -37,6 +37,14 @@ export async function saveProviderConfig(
   });
 }
 
+export async function resetProviderConfig(provider: ProviderName) {
+  return prisma.paymentProviderConfig.upsert({
+    where: { provider },
+    update: { encryptedKeys: null, enabled: false },
+    create: { provider, encryptedKeys: null, enabled: false },
+  });
+}
+
 /** Masque une clé pour affichage admin, ex: "wave_sn_prod_••••••••i4bA6" */
 export function maskKey(value: string): string {
   if (value.length <= 8) return "••••••••";
