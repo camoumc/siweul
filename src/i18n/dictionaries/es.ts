@@ -30,6 +30,7 @@ const es: Dictionary = {
     communityLeaderboard: "Clasificación comunitaria",
     premiumSubscription: "Suscripción Premium",
     businessSpace: "Espacio Empresas e Instituciones",
+    ambassadorProgram: "Conviértete en Embajador",
     howItWorks: "Cómo funciona",
     security: "Seguridad y verificación",
     contact: "Contacto",

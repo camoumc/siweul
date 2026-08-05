@@ -28,6 +28,7 @@ const fr = {
     communityLeaderboard: "Classement communautaire",
     premiumSubscription: "Abonnement Premium",
     businessSpace: "Espace Entreprises & Institutions",
+    ambassadorProgram: "Devenir Ambassadeur",
     howItWorks: "Comment ça marche",
     security: "Sécurité & vérification",
     contact: "Contact",

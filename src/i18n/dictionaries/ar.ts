@@ -30,6 +30,7 @@ const ar: Dictionary = {
     communityLeaderboard: "لوحة صدارة المجتمع",
     premiumSubscription: "اشتراك بريميوم",
     businessSpace: "مساحة الشركات والمؤسسات",
+    ambassadorProgram: "كن سفيرًا",
     howItWorks: "كيف يعمل الموقع",
     security: "الأمان والتحقق",
     contact: "اتصل بنا",

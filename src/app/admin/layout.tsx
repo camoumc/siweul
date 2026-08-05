@@ -12,6 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/signalements", label: "Signalements", icon: "FileWarning" as const },
     { href: "/admin/moderation", label: "Modération (abus)", icon: "ShieldAlert" as const },
     { href: "/admin/paiements", label: "Paiements", icon: "CreditCard" as const },
+    { href: "/admin/ambassadeurs", label: "Ambassadeurs", icon: "Megaphone" as const },
     { href: "/admin/tarifs", label: "Grille tarifaire", icon: "Tag" as const },
     { href: "/admin/utilisateurs", label: "Utilisateurs", icon: "Users" as const },
   ];

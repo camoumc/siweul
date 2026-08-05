@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardPoints, awardBadge } from "@/lib/points";
+import { awardAmbassadorEarning } from "@/lib/ambassador";
 
 export async function GET(
   _req: Request,
@@ -101,6 +102,7 @@ export async function PATCH(
   // (celle qui a probablement aidé à retrouver l'objet/la personne).
   if (data.status === "RESOLU" && report.status !== "RESOLU") {
     await awardPoints(report.ownerId, 20, "Signalement résolu");
+    await awardAmbassadorEarning(report.ownerId, `Signalement résolu : "${report.title}"`, report.id);
 
     const helpers = await prisma.conversationParticipant.findMany({
       where: { conversation: { reportId: id }, userId: { not: report.ownerId } },
@@ -110,6 +112,7 @@ export async function PATCH(
     for (const h of helpers) {
       await awardPoints(h.userId, 30, "A aidé à résoudre un signalement");
       await awardBadge(h.userId, "AIDANT");
+      await awardAmbassadorEarning(h.userId, `A aidé à résoudre : "${report.title}"`, report.id);
     }
   }
 

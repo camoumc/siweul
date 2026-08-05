@@ -40,7 +40,9 @@ export const authConfig = {
       const path = request.nextUrl.pathname;
       const isAdminRoute = path.startsWith("/admin");
       const isDashboardRoute =
-        path.startsWith("/tableau-de-bord") || path.startsWith("/entreprise");
+        path.startsWith("/tableau-de-bord") ||
+        path.startsWith("/entreprise") ||
+        path.startsWith("/ambassadeur");
 
       if (isAdminRoute) {
         return isLoggedIn && ["ADMIN", "SUPER_ADMIN"].includes(auth?.user?.role ?? "");

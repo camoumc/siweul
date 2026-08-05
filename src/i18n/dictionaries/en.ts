@@ -30,6 +30,7 @@ const en: Dictionary = {
     communityLeaderboard: "Community leaderboard",
     premiumSubscription: "Premium subscription",
     businessSpace: "Business & Institutions space",
+    ambassadorProgram: "Become an Ambassador",
     howItWorks: "How it works",
     security: "Security & verification",
     contact: "Contact",

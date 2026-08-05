@@ -37,6 +37,7 @@ export default async function Footer() {
             <li><Link href="/classement" className="hover:text-white">{dict.footer.communityLeaderboard}</Link></li>
             <li><Link href="/premium" className="hover:text-white">{dict.footer.premiumSubscription}</Link></li>
             <li><Link href="/entreprises" className="hover:text-white">{dict.footer.businessSpace}</Link></li>
+            <li><Link href="/ambassadeur" className="hover:text-white">{dict.footer.ambassadorProgram}</Link></li>
           </ul>
         </div>
 

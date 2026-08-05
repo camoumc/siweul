@@ -59,6 +59,7 @@ model User {
   organizationId   String?
   organization     Organization?  @relation("OrgMembers", fields: [organizationId], references: [id])
   ownedOrganization Organization? @relation("OrgOwner")
+  ambassador        Ambassador?
 }
 
 // ============================================================
@@ -341,4 +342,51 @@ model PaymentProviderConfig {
   enabled       Boolean  @default(false)
   encryptedKeys String?  // JSON chiffre (AES-256-GCM) des cles API du provider
   updatedAt     DateTime @updatedAt
+}
+
+// ============================================================
+// PROGRAMME AMBASSADEURS
+// ============================================================
+
+enum AmbassadorStatus {
+  EN_ATTENTE
+  ACTIF
+  SUSPENDU
+  REJETE
+}
+
+enum EarningStatus {
+  EN_ATTENTE
+  VALIDE
+  VERSE
+}
+
+model Ambassador {
+  id             String           @id @default(cuid())
+  userId         String           @unique
+  user           User             @relation(fields: [userId], references: [id])
+  zone           String           // quartier / secteur couvert
+  city           String
+  motivation     String?
+  status         AmbassadorStatus @default(EN_ATTENTE)
+  commissionRate Int              @default(500) // FCFA gagnes par action validee (fige a l'approbation)
+  totalEarned    Int              @default(0)   // cumule (FCFA), toutes lignes confondues
+  totalPaidOut   Int              @default(0)   // deja verse (marque par l'admin)
+  createdAt      DateTime         @default(now())
+  approvedAt     DateTime?
+
+  earnings       AmbassadorEarning[]
+
+  @@index([status, city])
+}
+
+model AmbassadorEarning {
+  id           String        @id @default(cuid())
+  ambassadorId String
+  ambassador   Ambassador    @relation(fields: [ambassadorId], references: [id], onDelete: Cascade)
+  amount       Int           // FCFA
+  reason       String
+  reportId     String?
+  status       EarningStatus @default(VALIDE)
+  createdAt    DateTime      @default(now())
 }

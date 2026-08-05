@@ -10,6 +10,7 @@ import {
   Tag,
   ShieldAlert,
   CreditCard,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ const ICONS: Record<string, LucideIcon> = {
   Tag,
   ShieldAlert,
   CreditCard,
+  Megaphone,
 };
 
 interface NavItem {

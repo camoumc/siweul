@@ -31,6 +31,11 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   navigation, pied de page — les autres pages restent en francais (voir section 6).*
 - **Grille tarifaire admin** (`/admin/tarifs`) : prete pour la facturation a l'usage
   (recuperation d'objet), tarifs configurables par type d'objet/document.
+- **Programme Ambassadeurs** (`/ambassadeur`) : candidature, validation par l'admin,
+  dashboard avec statistiques et historique des gains. Commission gagnée automatiquement
+  à chaque signalement résolu publié ou aidé par l'ambassadeur. Classement dédié sur
+  `/classement`. Versements marqués manuellement par l'admin (`/admin/ambassadeurs`) —
+  pas de virement automatique (mêmes raisons de conformité que pour Wave/Orange Money).
 - **Moderation** (`/admin/moderation`) : signalement d'annonces frauduleuses par la
   communaute, traitement par l'admin.
 - **Classement communautaire** (points, badges).
@@ -130,10 +135,10 @@ Ouvrez http://localhost:3000.
 
 > **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
 > modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment,
-> PaymentProviderConfig). Après avoir remplacé vos fichiers, relancez
-> `npx prisma db push` (en local ET pensez à le faire aussi contre votre base Neon de
-> production) pour créer les nouvelles tables, puis `npm run db:seed` pour initialiser la
-> grille tarifaire par défaut.
+> PaymentProviderConfig, Ambassador, AmbassadorEarning). Après avoir remplacé vos
+> fichiers, relancez `npx prisma db push` (en local ET pensez à le faire aussi contre
+> votre base Neon de production) pour créer les nouvelles tables, puis
+> `npm run db:seed` pour initialiser la grille tarifaire par défaut.
 >
 > Cette version corrige aussi un bug d'accès admin : le rôle utilisateur n'était pas
 > toujours transmis correctement au middleware (pouvait bloquer l'accès à `/admin`), et
