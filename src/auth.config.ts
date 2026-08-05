@@ -4,19 +4,37 @@ import type { NextAuthConfig } from "next-auth";
 // Le middleware ne fait que lire le token JWT pour protéger les routes ;
 // l'authentification réelle (Credentials + Prisma) vit dans src/auth.ts,
 // qui n'est chargé que côté Node.js (routes API, Server Components).
+//
+// IMPORTANT : les callbacks jwt/session vivent ICI (et pas seulement dans
+// auth.ts) car le middleware utilise sa propre instance NextAuth(authConfig).
+// Sans ces callbacks partagés, le rôle/plan de l'utilisateur ne serait pas
+// disponible dans le middleware, et un admin connecté se retrouverait
+// bloqué hors de /admin malgré une session valide.
 export const authConfig = {
-  // NextAuth v5 lit AUTH_SECRET par défaut ; on accepte aussi NEXTAUTH_SECRET
-  // (nom historique v4) pour éviter l'erreur "Server error - problem with the
-  // server configuration" si une seule des deux variables est définie sur Vercel.
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  // Nécessaire pour accepter les requêtes venant d'un domaine personnalisé
-  // (ex. www.siweul.pro) plutôt que uniquement *.vercel.app
   trustHost: true,
+  session: { strategy: "jwt" },
   pages: {
     signIn: "/connexion",
   },
   providers: [],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as { role?: string }).role;
+        token.plan = (user as { plan?: string }).plan;
+        token.id = (user as { id?: string }).id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.plan = token.plan as string;
+      }
+      return session;
+    },
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user;
       const path = request.nextUrl.pathname;

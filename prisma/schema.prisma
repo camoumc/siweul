@@ -330,3 +330,15 @@ model Payment {
   status      PaymentStatus @default(PAYE)
   createdAt   DateTime      @default(now())
 }
+
+// ============================================================
+// CONFIGURATION DES MOYENS DE PAIEMENT (cles API modifiables depuis l'admin)
+// ============================================================
+
+model PaymentProviderConfig {
+  id            String   @id @default(cuid())
+  provider      String   @unique // "STRIPE" | "WAVE" | "ORANGE_MONEY"
+  enabled       Boolean  @default(false)
+  encryptedKeys String?  // JSON chiffre (AES-256-GCM) des cles API du provider
+  updatedAt     DateTime @updatedAt
+}

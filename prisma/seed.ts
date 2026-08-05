@@ -43,6 +43,9 @@ async function main() {
 
 async function seedPricing() {
   const DEFAULT_RULES: { key: string; label: string; category: string; amount: number }[] = [
+    // Abonnements (utilisés par Wave / Orange Money — Stripe utilise ses propres Price ID)
+    { key: "PREMIUM_MONTHLY", label: "Abonnement Premium (mensuel)", category: "Abonnement", amount: 2000 },
+    { key: "PRO_MONTHLY", label: "Abonnement Pro (mensuel)", category: "Abonnement", amount: 25000 },
     // Documents administratifs
     { key: "CNI", label: "Carte nationale d'identité", category: "Document administratif", amount: 1000 },
     { key: "PASSEPORT", label: "Passeport", category: "Document administratif", amount: 2000 },

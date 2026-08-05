@@ -129,10 +129,16 @@ npm run dev
 Ouvrez http://localhost:3000.
 
 > **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
-> modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment). Après avoir
-> remplacé vos fichiers, relancez `npx prisma db push` (en local ET pensez à le faire
-> aussi contre votre base Neon de production) pour créer les nouvelles tables, puis
-> `npm run db:seed` pour initialiser la grille tarifaire par défaut.
+> modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment,
+> PaymentProviderConfig). Après avoir remplacé vos fichiers, relancez
+> `npx prisma db push` (en local ET pensez à le faire aussi contre votre base Neon de
+> production) pour créer les nouvelles tables, puis `npm run db:seed` pour initialiser la
+> grille tarifaire par défaut.
+>
+> Cette version corrige aussi un bug d'accès admin : le rôle utilisateur n'était pas
+> toujours transmis correctement au middleware (pouvait bloquer l'accès à `/admin`), et
+> le menu de navigation admin était invisible sur mobile. Un simple redéploiement suffit
+> pour appliquer ces correctifs, sans étape supplémentaire.
 
 > **Important** : `npx prisma generate` telecharge les moteurs Prisma depuis
 > `binaries.prisma.sh`. Si vous developpez derriere un pare-feu/proxy restrictif, cette
@@ -152,6 +158,10 @@ Voir `.env.example`. Resume :
 - `BLOB_READ_WRITE_TOKEN` — jeton Vercel Blob (Storage -> Blob -> onglet `.env.local`).
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_PRO`
   — facultatifs, voir section 5bis.
+- `ENCRYPTION_KEY` — obligatoire si vous configurez Wave et/ou Orange Money depuis
+  l'admin (chiffre les clés API stockées en base). Générez-le avec
+  `openssl rand -base64 32`, comme `NEXTAUTH_SECRET`. **Ne le changez jamais après coup**
+  sans re-saisir les clés Wave/Orange Money, sinon elles deviennent illisibles.
 
 ## 5bis. Configurer les paiements Stripe (facultatif)
 
@@ -174,6 +184,36 @@ vrais paiements :
    `checkout.session.completed` et `customer.subscription.deleted`, puis copiez le
    secret de signature dans `STRIPE_WEBHOOK_SECRET`.
 5. Ajoutez ces 4 variables sur Vercel (Settings > Environment Variables) et redeployez.
+
+## 5ter. Configurer Wave et Orange Money (depuis l'admin, pas de variable d'env)
+
+Contrairement à Stripe, les clés Wave et Orange Money se saisissent directement dans
+**`/admin/paiements/configuration`** — elles sont chiffrées (AES-256-GCM) avant d'être
+stockées en base. Il vous faut uniquement `ENCRYPTION_KEY` en variable d'environnement
+(voir section 5).
+
+**Wave** :
+1. Business Portal Wave > section *Developer* > créez une clé API et copiez-la
+   (`wave_sn_prod_...`).
+2. Toujours dans *Developer* > *Webhooks* : ajoutez l'URL
+   `https://votre-domaine/api/webhooks/wave`, choisissez au moins l'événement
+   `checkout.session.completed`, et copiez le secret de signature affiché.
+3. Collez les deux valeurs dans `/admin/paiements/configuration`, cochez **Actif**,
+   enregistrez.
+
+**Orange Money** :
+1. Créez un compte sur [developer.orange.com](https://developer.orange.com), créez une
+   application Web Payment pour obtenir un `Client ID` / `Client Secret`.
+2. Récupérez votre `Merchant Key` auprès de votre contrat marchand Orange Money Sénégal.
+3. Renseignez ces 3 valeurs + le code pays (`sn`) dans `/admin/paiements/configuration`.
+4. ⚠️ L'API Orange Money varie parfois selon le pays/contrat — testez un premier paiement
+   en environnement de test avant la mise en production, et signalez-moi tout écart de
+   comportement pour que j'ajuste `src/lib/orangeMoney.ts`.
+
+**Important** : Wave et Orange Money ne gèrent pas les abonnements récurrents
+automatiques comme Stripe — chaque paiement est un lien à usage unique. Le renouvellement
+mensuel Premium/Pro nécessite pour l'instant que l'utilisateur repaie chaque mois (une
+future amélioration pourra ajouter un rappel automatique).
 
 ---
 

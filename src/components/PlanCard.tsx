@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
+
+const PROVIDER_LABELS: Record<string, string> = {
+  STRIPE: "Carte bancaire (Stripe)",
+  WAVE: "Wave",
+  ORANGE_MONEY: "Orange Money",
+};
+
+const CHECKOUT_ENDPOINTS: Record<string, string> = {
+  STRIPE: "/api/checkout/subscription",
+  WAVE: "/api/checkout/wave",
+  ORANGE_MONEY: "/api/checkout/orange-money",
+};
 
 export default function PlanCard({
   plan,
@@ -26,6 +38,26 @@ export default function PlanCard({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [providers, setProviders] = useState<string[] | null>(null);
+  const [error, setError] = useState("");
+
+  const payWith = async (provider: string) => {
+    setLoading(true);
+    setError("");
+    const res = await fetch(CHECKOUT_ENDPOINTS[provider], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    if (res.ok) {
+      const { url } = await res.json();
+      window.location.href = url;
+      return;
+    }
+    const data = await res.json();
+    setError(data.error ?? "Ce moyen de paiement est momentanément indisponible.");
+    setLoading(false);
+  };
 
   const handleClick = async () => {
     if (status !== "authenticated") {
@@ -33,33 +65,35 @@ export default function PlanCard({
       return;
     }
     setLoading(true);
+    const res = await fetch("/api/payment-providers/enabled");
+    const data = await res.json();
+    const enabled: string[] = data.enabledProviders ?? [];
+    setLoading(false);
 
-    // 1. On tente d'abord un vrai paiement Stripe.
-    const checkoutRes = await fetch("/api/checkout/subscription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
-    if (checkoutRes.ok) {
-      const { url } = await checkoutRes.json();
-      window.location.href = url;
-      return; // redirection en cours, pas besoin de setLoading(false)
+    if (enabled.length === 0) {
+      // Aucun moyen de paiement actif : on retombe sur la demande manuelle.
+      setLoading(true);
+      const r = await fetch("/api/upgrade-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      setLoading(false);
+      if (r.ok) setDone(true);
+      return;
     }
 
-    // 2. Si Stripe n'est pas encore configuré (503) ou toute autre erreur,
-    // on retombe sur la demande manuelle traitée par un admin.
-    const res = await fetch("/api/upgrade-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
-    setLoading(false);
-    if (res.ok) setDone(true);
+    if (enabled.length === 1) {
+      payWith(enabled[0]);
+      return;
+    }
+
+    setProviders(enabled);
   };
 
   return (
     <div
-      className={`flex flex-col rounded-3xl border p-8 ${
+      className={`relative flex flex-col rounded-3xl border p-8 ${
         highlighted ? "border-signal bg-white shadow-xl ring-2 ring-signal" : "border-border bg-white"
       }`}
     >
@@ -82,6 +116,8 @@ export default function PlanCard({
         ))}
       </ul>
 
+      {error && <p className="mt-3 text-xs text-alert">{error}</p>}
+
       {isFree ? (
         <span className="mt-8 rounded-full bg-paper-2 px-4 py-2.5 text-center text-sm font-semibold text-text-muted">
           Votre plan actuel par défaut
@@ -99,8 +135,33 @@ export default function PlanCard({
           }`}
         >
           {loading && <Loader2 size={14} className="animate-spin" />}
-          {loading ? "Envoi..." : `Passer ${name}`}
+          {loading ? "Chargement..." : `Passer ${name}`}
         </button>
+      )}
+
+      {providers && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-white/95 p-6 backdrop-blur">
+          <button
+            onClick={() => setProviders(null)}
+            className="absolute right-4 top-4 text-text-muted hover:text-text"
+          >
+            <X size={16} />
+          </button>
+          <div className="w-full">
+            <p className="mb-3 text-center text-sm font-semibold text-text">Choisissez un moyen de paiement</p>
+            <div className="space-y-2">
+              {providers.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => payWith(p)}
+                  className="w-full rounded-full border border-border py-2.5 text-sm font-medium text-text hover:border-signal hover:text-signal"
+                >
+                  {PROVIDER_LABELS[p] ?? p}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
