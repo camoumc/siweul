@@ -32,24 +32,42 @@ export async function POST(req: Request) {
   const filename = `${session.user.id}-${Date.now()}-${file.name}`;
 
   try {
+    console.log("BLOB TOKEN PRESENT:", !!process.env.BLOB_READ_WRITE_TOKEN);
+    console.log("UPLOAD FILE:", filename);
+    console.log("SIZE:", file.size);
+
     const blob = await put(filename, file, {
       access: "public",
       addRandomSuffix: true,
     });
 
+    console.log("BLOB SUCCESS:", blob.url);
+
     return NextResponse.json({
+      success: true,
       url: blob.url,
     });
 
   } catch (err) {
-  console.error("BLOB ERROR:", err);
 
-  return NextResponse.json(
-    {
-      error: "Erreur upload Blob",
-      details: err instanceof Error ? err.message : String(err),
-    },
-    { status: 500 }
-  );
- }
+    console.error("========== BLOB ERROR ==========");
+    console.error(err);
+
+    return NextResponse.json(
+      {
+        error: "Erreur upload Blob",
+        message:
+          err instanceof Error
+            ? err.message
+            : String(err),
+        stack:
+          err instanceof Error
+            ? err.stack
+            : null,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
