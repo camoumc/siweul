@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   }
 
   const form = await req.formData();
+
   const file = form.get("file") as File | null;
 
   if (!file) {
@@ -29,45 +30,32 @@ export async function POST(req: Request) {
     );
   }
 
+
   const filename = `${session.user.id}-${Date.now()}-${file.name}`;
 
   try {
-    console.log("BLOB TOKEN PRESENT:", !!process.env.BLOB_READ_WRITE_TOKEN);
-    console.log("UPLOAD FILE:", filename);
-    console.log("SIZE:", file.size);
 
     const blob = await put(filename, file, {
-      access: "public",
+      access: "private",
       addRandomSuffix: true,
     });
 
-    console.log("BLOB SUCCESS:", blob.url);
 
     return NextResponse.json({
-      success: true,
       url: blob.url,
+      pathname: blob.pathname,
     });
 
-  } catch (err) {
 
-    console.error("========== BLOB ERROR ==========");
-    console.error(err);
+  } catch (error) {
+
+    console.error("BLOB ERROR:", error);
 
     return NextResponse.json(
       {
         error: "Erreur upload Blob",
-        message:
-          err instanceof Error
-            ? err.message
-            : String(err),
-        stack:
-          err instanceof Error
-            ? err.stack
-            : null,
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
