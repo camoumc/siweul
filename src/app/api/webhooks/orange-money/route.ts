@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { awardBadge } from "@/lib/points";
+import { notifyUser } from "@/lib/notify";
 
 /**
  * Orange Money notifie généralement notif_url par une requête (GET ou POST
@@ -32,14 +33,13 @@ async function handleNotification(orderId: string | null, status: string | null)
           status: "PAYE",
         },
       });
-      await prisma.notification.create({
-        data: {
-          userId,
-          type: "SYSTEME",
-          title: `Bienvenue dans SIWEUL ${plan} !`,
-          body: "Votre paiement Orange Money a été confirmé. Merci de votre confiance.",
-          link: "/tableau-de-bord",
-        },
+      await notifyUser({
+        userId,
+        type: "SYSTEME",
+        title: `Bienvenue dans SIWEUL ${plan} !`,
+        body: "Votre paiement Orange Money a été confirmé. Merci de votre confiance.",
+        link: "/tableau-de-bord",
+        email: true,
       });
       await awardBadge(userId, "VERIFIE");
     }

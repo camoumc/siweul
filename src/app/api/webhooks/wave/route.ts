@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyWaveSignature } from "@/lib/wave";
 import { getProviderConfig, type WaveKeys } from "@/lib/paymentProviders";
 import { awardBadge } from "@/lib/points";
+import { notifyUser } from "@/lib/notify";
 
 export const runtime = "nodejs";
 
@@ -37,14 +38,13 @@ export async function POST(req: Request) {
             status: "PAYE",
           },
         });
-        await prisma.notification.create({
-          data: {
-            userId,
-            type: "SYSTEME",
-            title: `Bienvenue dans SIWEUL ${plan} !`,
-            body: "Votre paiement Wave a été confirmé. Merci de votre confiance.",
-            link: "/tableau-de-bord",
-          },
+        await notifyUser({
+          userId,
+          type: "SYSTEME",
+          title: `Bienvenue dans SIWEUL ${plan} !`,
+          body: "Votre paiement Wave a été confirmé. Merci de votre confiance.",
+          link: "/tableau-de-bord",
+          email: true,
         });
         await awardBadge(userId, "VERIFIE");
       }

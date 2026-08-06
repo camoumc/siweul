@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { awardBadge } from "@/lib/points";
+import { notifyUser } from "@/lib/notify";
 import type Stripe from "stripe";
 
 // Next.js doit recevoir le corps brut (non parsé) pour que Stripe puisse
@@ -56,14 +57,13 @@ export async function POST(req: Request) {
             status: "PAYE",
           },
         });
-        await prisma.notification.create({
-          data: {
-            userId,
-            type: "SYSTEME",
-            title: `Bienvenue dans SIWEUL ${plan} !`,
-            body: "Votre abonnement est actif. Merci de votre confiance.",
-            link: "/tableau-de-bord",
-          },
+        await notifyUser({
+          userId,
+          type: "SYSTEME",
+          title: `Bienvenue dans SIWEUL ${plan} !`,
+          body: "Votre abonnement est actif. Merci de votre confiance.",
+          link: "/tableau-de-bord",
+          email: true,
         });
         await awardBadge(userId, "VERIFIE");
       }
@@ -78,14 +78,13 @@ export async function POST(req: Request) {
           where: { id: userId },
           data: { plan: "GRATUIT", stripeSubscriptionId: null },
         });
-        await prisma.notification.create({
-          data: {
-            userId,
-            type: "SYSTEME",
-            title: "Abonnement terminé",
-            body: "Votre abonnement SIWEUL a pris fin. Vous êtes repassé au plan Gratuit.",
-            link: "/premium",
-          },
+        await notifyUser({
+          userId,
+          type: "SYSTEME",
+          title: "Abonnement terminé",
+          body: "Votre abonnement SIWEUL a pris fin. Vous êtes repassé au plan Gratuit.",
+          link: "/premium",
+          email: true,
         });
       }
       break;

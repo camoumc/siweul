@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notify";
 
 /**
  * Attribue un gain à un ambassadeur ACTIF pour une action valide (ex :
@@ -30,13 +31,12 @@ export async function awardAmbassadorEarning(
     where: { id: ambassador.id },
     data: { totalEarned: { increment: amount } },
   });
-  await prisma.notification.create({
-    data: {
-      userId,
-      type: "SYSTEME",
-      title: `+${amount} FCFA — gain Ambassadeur`,
-      body: reason,
-      link: "/ambassadeur",
-    },
+  await notifyUser({
+    userId,
+    type: "SYSTEME",
+    title: `+${amount} FCFA — gain Ambassadeur`,
+    body: reason,
+    link: "/ambassadeur",
+    email: true,
   });
 }

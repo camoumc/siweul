@@ -38,8 +38,14 @@ interactive, messagerie securisee, gamification et back-office admin complet.
 - **Programme Ambassadeurs** (`/ambassadeur`) : candidature, validation par l'admin,
   dashboard avec statistiques et historique des gains. Commission gagnée automatiquement
   à chaque signalement résolu publié ou aidé par l'ambassadeur. Classement dédié sur
-  `/classement`. Versements marqués manuellement par l'admin (`/admin/ambassadeurs`) —
-  pas de virement automatique (mêmes raisons de conformité que pour Wave/Orange Money).
+  `/classement`. **Contrôle admin complet** (`/admin/ambassadeurs`) : approuver/rejeter/
+  suspendre, filtrer/rechercher, modifier zone/ville/commission, ajuster manuellement les
+  gains (bonus/correction), marquer les versements, supprimer un profil. Versements
+  marqués manuellement par l'admin — pas de virement automatique (mêmes raisons de
+  conformité que pour Wave/Orange Money).
+- **Emails automatiques** pour les événements importants (validation ambassadeur,
+  confirmation de paiement, versement effectué, mot de passe modifié) en plus des
+  notifications in-app — voir section 5quater pour la configuration.
 - **Moderation** (`/admin/moderation`) : signalement d'annonces frauduleuses par la
   communaute, traitement par l'admin.
 - **Classement communautaire** (points, badges).
