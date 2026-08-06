@@ -52,6 +52,7 @@ model User {
   badges        UserBadge[]
   flagsFiled    ReportFlag[]
   payments      Payment[]
+  passwordResetTokens PasswordResetToken[]
 
   stripeCustomerId     String?  @unique
   stripeSubscriptionId String?  @unique
@@ -236,6 +237,8 @@ model Message {
   content        String
   readAt         DateTime?
   createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 // ============================================================
@@ -260,6 +263,9 @@ model Notification {
   link      String?
   read      Boolean          @default(false)
   createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, read])
 }
 
 // ============================================================
@@ -389,4 +395,20 @@ model AmbassadorEarning {
   reportId     String?
   status       EarningStatus @default(VALIDE)
   createdAt    DateTime      @default(now())
+}
+
+// ============================================================
+// REINITIALISATION DE MOT DE PASSE
+// ============================================================
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

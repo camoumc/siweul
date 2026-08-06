@@ -42,7 +42,9 @@ export const authConfig = {
       const isDashboardRoute =
         path.startsWith("/tableau-de-bord") ||
         path.startsWith("/entreprise") ||
-        path.startsWith("/ambassadeur");
+        path.startsWith("/ambassadeur") ||
+        path.startsWith("/parametres") ||
+        path.startsWith("/notifications");
 
       if (isAdminRoute) {
         return isLoggedIn && ["ADMIN", "SUPER_ADMIN"].includes(auth?.user?.role ?? "");

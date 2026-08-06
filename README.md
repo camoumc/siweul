@@ -17,6 +17,10 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   OpenStreetMap, gratuite, sans cle API).
 - **Messagerie interne securisee** : aucun numero de telephone n'est jamais affiche
   publiquement ; un filtre supprime automatiquement les numeros tapes dans le chat.
+  Pagination par curseur (30 messages/page), separateurs de date, avatars, indicateurs
+  de lecture (✓ / ✓✓) — pensee pour tenir avec des milliers de messages par conversation.
+- **Mot de passe oublie / reinitialisation** par email (voir section 5quater), et
+  changement de mot de passe + edition du profil depuis `/parametres`.
 - **Comptes utilisateurs** avec roles (utilisateur, entreprise, police, gendarmerie,
   mairie, hopital, association, admin, super-admin), plans (gratuit/premium/pro),
   points de gamification, **badges** et **score de confiance**.
@@ -39,7 +43,9 @@ interactive, messagerie securisee, gamification et back-office admin complet.
 - **Moderation** (`/admin/moderation`) : signalement d'annonces frauduleuses par la
   communaute, traitement par l'admin.
 - **Classement communautaire** (points, badges).
-- **Notifications** en application (cloche + centre de notifications).
+- **Notifications** : cloche legere (juste un compteur, poll toutes les 20s) + page
+  complete paginee `/notifications` (marquer lu, supprimer, charger plus) — pensee pour
+  tenir avec un historique volumineux sans ralentir la navigation.
 - **Back-office admin** : statistiques (graphiques), gestion des utilisateurs (bannir,
   verifier, changer de role/plan), moderation des signalements.
 - **Upload photo** via Vercel Blob (jusqu'a 6 photos par signalement).
@@ -135,10 +141,11 @@ Ouvrez http://localhost:3000.
 
 > **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
 > modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment,
-> PaymentProviderConfig, Ambassador, AmbassadorEarning). Après avoir remplacé vos
-> fichiers, relancez `npx prisma db push` (en local ET pensez à le faire aussi contre
-> votre base Neon de production) pour créer les nouvelles tables, puis
-> `npm run db:seed` pour initialiser la grille tarifaire par défaut.
+> PaymentProviderConfig, Ambassador, AmbassadorEarning, PasswordResetToken) et des index
+> de performance sur Message/Notification. Après avoir remplacé vos fichiers, relancez
+> `npx prisma db push` (en local ET pensez à le faire aussi contre votre base Neon de
+> production) pour créer les nouvelles tables, puis `npm run db:seed` pour initialiser la
+> grille tarifaire par défaut.
 >
 > Cette version corrige aussi un bug d'accès admin : le rôle utilisateur n'était pas
 > toujours transmis correctement au middleware (pouvait bloquer l'accès à `/admin`), et
@@ -221,6 +228,48 @@ mensuel Premium/Pro nécessite pour l'instant que l'utilisateur repaie chaque mo
 future amélioration pourra ajouter un rappel automatique).
 
 ---
+
+## 5quater. Configurer l'envoi d'email (mot de passe oublié)
+
+La réinitialisation de mot de passe nécessite un envoi d'email. Le projet utilise
+[Resend](https://resend.com) (gratuit jusqu'à 3000 emails/mois) via un simple appel HTTP,
+sans dépendance lourde.
+
+1. Créez un compte sur [resend.com](https://resend.com), copiez votre clé API.
+2. Ajoutez `RESEND_API_KEY` sur Vercel.
+3. (Optionnel) `EMAIL_FROM` — l'adresse d'expédition. Par défaut :
+   `SIWEUL <onboarding@resend.dev>` (fonctionne sans configuration DNS, mais moins
+   professionnel). Pour utiliser `contact@siweul.pro`, ajoutez et vérifiez votre domaine
+   dans Resend (Domains > Add Domain), puis mettez
+   `EMAIL_FROM="SIWEUL <contact@siweul.pro>"`.
+
+**Sans `RESEND_API_KEY` configuré**, le lien de réinitialisation est simplement
+journalisé dans les logs Vercel (Functions > Logs) au lieu d'être envoyé par email — utile
+pour tester sans compte Resend, mais **à configurer avant la mise en production**, sinon
+vos utilisateurs ne pourront jamais réinitialiser leur mot de passe eux-mêmes.
+
+## 5quinquies. Recommandations d'expert (non implémentées, pour la suite)
+
+Quelques axes d'amélioration que je recommande, par ordre de priorité :
+
+1. **Limitation de débit (rate limiting)** sur `/api/auth/forgot-password`,
+   `/api/register` et la connexion — sans ça, un script peut spammer des emails de
+   réinitialisation ou tenter des mots de passe en boucle. Solution simple : Vercel
+   Firewall (gratuit, quelques clics) ou la librairie `@upstash/ratelimit`.
+2. **Vérification d'email à l'inscription** : réutilise l'infrastructure Resend déjà en
+   place, réduit les faux comptes.
+3. **reCAPTCHA/hCaptcha** sur inscription et contact, pour limiter les faux comptes et le
+   spam.
+4. **Messagerie en temps réel** : le chat et les notifications utilisent aujourd'hui un
+   "polling" (rafraîchissement périodique), simple et fiable à votre échelle actuelle.
+   Si le volume de messages simultanés grossit beaucoup, un service comme Pusher ou Ably
+   apporterait du temps réel instantané sans changer l'architecture existante.
+5. **Compression des photos côté navigateur** avant upload (ex. `browser-image-compression`)
+   pour réduire les coûts de stockage Vercel Blob et accélérer les publications.
+6. **Journal d'audit admin** : historiser qui a changé quoi (rôle utilisateur, statut de
+   signalement...) pour la traçabilité.
+7. **Tests automatisés** (au moins sur le moteur de correspondance et les routes de
+   paiement) avant toute évolution future du code, pour éviter les régressions.
 
 ## 6. Prochaines etapes suggerees
 

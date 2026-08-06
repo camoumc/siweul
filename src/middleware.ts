@@ -10,5 +10,8 @@ export const config = {
     "/admin/:path*",
     "/tableau-de-bord/:path*",
     "/entreprise/:path*",
+    "/ambassadeur/:path*",
+    "/parametres/:path*",
+    "/notifications/:path*",
   ],
 };

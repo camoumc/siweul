@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, Search, PlusCircle, LayoutDashboard, ShieldCheck, Building2 } from "lucide-react";
+import { Menu, X, Search, PlusCircle, LayoutDashboard, ShieldCheck, Building2, Settings } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLocale } from "@/components/LocaleProvider";
@@ -79,6 +79,14 @@ export default function Navbar() {
               >
                 <LayoutDashboard size={16} /> {dict.common.mySpace}
               </Link>
+              <Link
+                href="/parametres"
+                className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white"
+                aria-label="Paramètres"
+                title="Paramètres du compte"
+              >
+                <Settings size={16} />
+              </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="rounded-full px-3 py-1.5 text-sm font-medium text-white/60 hover:text-white"
@@ -141,6 +149,9 @@ export default function Navbar() {
               <>
                 <Link href="/tableau-de-bord" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
                   {dict.common.mySpace}
+                </Link>
+                <Link href="/parametres" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
+                  Paramètres
                 </Link>
                 {isInstitution && (
                   <Link href="/entreprise" className="rounded-lg px-3 py-2 text-white/90 hover:bg-white/10">
