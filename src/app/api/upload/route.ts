@@ -24,14 +24,14 @@ export async function POST(req: Request) {
       addRandomSuffix: true,
     });
     return NextResponse.json({ url: blob.url });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      {
-        error:
-          "Échec de l'upload. Vérifiez que BLOB_READ_WRITE_TOKEN est configuré (Vercel > Storage > Blob).",
-      },
-      { status: 500 }
-    );
-  }
+  catch (err) {
+  console.error("BLOB ERROR:", err);
+
+  return NextResponse.json(
+    {
+      error: err instanceof Error ? err.message : String(err),
+    },
+    { status: 500 }
+  );
+}
 }
