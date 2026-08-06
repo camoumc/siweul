@@ -42,16 +42,14 @@ export async function POST(req: Request) {
     });
 
   } catch (err) {
+  console.error("BLOB ERROR:", err);
 
-    console.error("BLOB ERROR:", err);
-
-    return NextResponse.json(
-      {
-        error: "Erreur upload Blob",
-        details:
-          err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      error: "Erreur upload Blob",
+      details: err instanceof Error ? err.message : String(err),
+    },
+    { status: 500 }
+  );
+ }
 }
