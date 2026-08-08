@@ -35,6 +35,20 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   navigation, pied de page — les autres pages restent en francais (voir section 6).*
 - **Grille tarifaire admin** (`/admin/tarifs`) : prete pour la facturation a l'usage
   (recuperation d'objet), tarifs configurables par type d'objet/document.
+- **Statistiques nationales enrichies** (`/admin`) : delai moyen de resolution,
+  repartition par categorie, zones les plus actives, evolution sur 12 mois, **export CSV**
+  du rapport complet.
+- **Timeline de suivi** ("façon colis") sur chaque annonce : déclaré → photo ajoutée →
+  correspondance IA → contact établi → résolu.
+- **Carte avec mode thermique** (`/carte`) : bascule Points / Carte thermique
+  (zones de pertes en orange, zones de restitutions en vert).
+- **SEO** : sitemap.xml et robots.txt automatiques, métadonnées dynamiques (titre,
+  description, Open Graph, Twitter Card) par annonce, données structurées Schema.org
+  (BreadcrumbList + Article) pour l'indexation Google.
+- **Vérification de propriété** avec score automatique (0-100) avant restitution d'un
+  objet trouvé : le réclamant décrit une preuve (IMEI, code, détail unique), comparée
+  automatiquement au détail caché/numéro de série renseigné par le trouveur — qui valide
+  ensuite manuellement (le score aide à la décision, il ne l'automatise pas entièrement).
 - **Programme Ambassadeurs** (`/ambassadeur`) : candidature, validation par l'admin,
   dashboard avec statistiques et historique des gains. Commission gagnée automatiquement
   à chaque signalement résolu publié ou aidé par l'ambassadeur. Classement dédié sur
@@ -147,11 +161,11 @@ Ouvrez http://localhost:3000.
 
 > **Mise à jour depuis une version précédente** : cette version ajoute de nouveaux
 > modèles (Organization, UserBadge, ReportFlag, PricingRule, Payment,
-> PaymentProviderConfig, Ambassador, AmbassadorEarning, PasswordResetToken) et des index
-> de performance sur Message/Notification. Après avoir remplacé vos fichiers, relancez
-> `npx prisma db push` (en local ET pensez à le faire aussi contre votre base Neon de
-> production) pour créer les nouvelles tables, puis `npm run db:seed` pour initialiser la
-> grille tarifaire par défaut.
+> PaymentProviderConfig, Ambassador, AmbassadorEarning, PasswordResetToken,
+> OwnershipClaim) et des index de performance sur Message/Notification. Après avoir
+> remplacé vos fichiers, relancez `npx prisma db push` (en local ET pensez à le faire
+> aussi contre votre base Neon de production) pour créer les nouvelles tables, puis
+> `npm run db:seed` pour initialiser la grille tarifaire par défaut.
 >
 > Cette version corrige aussi un bug d'accès admin : le rôle utilisateur n'était pas
 > toujours transmis correctement au middleware (pouvait bloquer l'accès à `/admin`), et

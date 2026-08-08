@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { REPORT_TYPES, type ReportTypeKey } from "@/lib/reportConfig";
@@ -9,7 +10,58 @@ import ShareButtons from "@/components/ShareButtons";
 import TrustBadge from "@/components/TrustBadge";
 import BadgeIcon from "@/components/BadgeIcon";
 import FlagButton from "@/components/FlagButton";
+import ReportTimeline from "@/components/ReportTimeline";
+import ClaimOwnershipButton from "@/components/ClaimOwnershipButton";
+import OwnershipClaimsPanel from "@/components/OwnershipClaimsPanel";
 import { getBadge } from "@/lib/badges";
+
+const BASE_URL = process.env.NEXTAUTH_URL ?? "https://www.siweul.pro";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const report = await prisma.report.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      description: true,
+      city: true,
+      type: true,
+      category: true,
+      photos: { take: 1, select: { url: true } },
+    },
+  });
+  if (!report) return { title: "Annonce introuvable — SIWEUL" };
+
+  const cfg = REPORT_TYPES[report.type as ReportTypeKey];
+  const title = `${report.title} — ${cfg.label} à ${report.city} | SIWEUL`;
+  const description = report.description.slice(0, 155);
+  const image = report.photos[0]?.url ?? `${BASE_URL}/brand/logo-badge.png`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `${BASE_URL}/annonces/${id}` },
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/annonces/${id}`,
+      images: [{ url: image }],
+      siteName: "SIWEUL",
+      locale: "fr_SN",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export default async function AnnonceDetail({
   params,
@@ -39,9 +91,15 @@ export default async function AnnonceDetail({
 
   if (!report) notFound();
 
-  const resolvedReportsCount = await prisma.report.count({
-    where: { ownerId: report.owner.id, status: "RESOLU" },
-  });
+  const [resolvedReportsCount, bestMatch, conversationCount] = await Promise.all([
+    prisma.report.count({ where: { ownerId: report.owner.id, status: "RESOLU" } }),
+    prisma.matchScore.findFirst({
+      where: { OR: [{ reportAId: report.id }, { reportBId: report.id }] },
+      orderBy: { score: "desc" },
+      select: { score: true },
+    }),
+    prisma.conversation.count({ where: { reportId: report.id } }),
+  ]);
   const accountAgeDays = Math.floor(
     // eslint-disable-next-line react-hooks/purity -- calcul serveur (Server Component), pas de rendu React concerné
     (Date.now() - new Date(report.owner.createdAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -55,10 +113,39 @@ export default async function AnnonceDetail({
 
   const cfg = REPORT_TYPES[report.type as ReportTypeKey];
   const isOwner = session?.user?.id === report.ownerId;
-  const url = `${process.env.NEXTAUTH_URL ?? "https://siweul.vercel.app"}/annonces/${report.id}`;
+  const url = `${BASE_URL}/annonces/${report.id}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Accueil", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: cfg.labelPlural, item: `${BASE_URL}/rechercher?type=${report.type}` },
+          { "@type": "ListItem", position: 3, name: report.title, item: url },
+        ],
+      },
+      {
+        "@type": "Article",
+        headline: report.title,
+        description: report.description.slice(0, 300),
+        image: report.photos[0]?.url,
+        datePublished: report.createdAt.toISOString(),
+        dateModified: report.updatedAt.toISOString(),
+        author: { "@type": "Organization", name: "SIWEUL" },
+        publisher: { "@type": "Organization", name: "SIWEUL", logo: { "@type": "ImageObject", url: `${BASE_URL}/brand/logo-badge.png` } },
+        contentLocation: { "@type": "Place", name: report.city },
+      },
+    ],
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <span className={`inline-flex rounded-full ${cfg.bg} px-3 py-1 text-xs font-bold ${cfg.color}`}>
           {cfg.shortLabel}
@@ -195,6 +282,14 @@ export default async function AnnonceDetail({
             )}
           </div>
 
+          {!isOwner && report.hiddenDetail && (
+            <ClaimOwnershipButton reportId={report.id} />
+          )}
+
+          {isOwner && report.hiddenDetail && (
+            <OwnershipClaimsPanel reportId={report.id} />
+          )}
+
           <div className="rounded-3xl bg-ink p-6 text-white/80">
             <p className="flex items-center gap-2 font-semibold text-white">
               <ShieldCheck size={16} className="text-signal" /> Restitution sécurisée
@@ -204,6 +299,15 @@ export default async function AnnonceDetail({
               de l&apos;objet avant toute remise en main propre, idéalement dans un lieu public.
             </p>
           </div>
+
+          <ReportTimeline
+            createdAt={report.createdAt.toISOString()}
+            hasPhotos={report.photos.length > 0}
+            hasMatch={!!bestMatch}
+            bestMatchScore={bestMatch?.score ?? null}
+            hasConversation={conversationCount > 0}
+            isResolved={report.status === "RESOLU"}
+          />
 
           {isOwner && (
             <div className="rounded-3xl border border-dashed border-border p-6 text-sm text-text-muted">

@@ -7,7 +7,16 @@ export async function GET() {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
-  const [totalUsers, totalReports, resolvedReports, byType, last30days] = await Promise.all([
+  const [
+    totalUsers,
+    totalReports,
+    resolvedReports,
+    byType,
+    last365days,
+    resolvedWithDates,
+    categoryRows,
+    cityRows,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.report.count(),
     prisma.report.count({ where: { status: "RESOLU" } }),
@@ -18,33 +27,73 @@ export async function GET() {
         resolved: await prisma.report.count({ where: { type, status: "RESOLU" } }),
       }))
     ),
+    prisma.report.findMany({
+      where: { createdAt: { gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) } },
+      select: { createdAt: true },
+    }),
+    prisma.report.findMany({
+      where: { status: "RESOLU" },
+      select: { createdAt: true, updatedAt: true },
+    }),
     prisma.report.groupBy({
-      by: ["createdAt"],
-      _count: true,
-      where: {
-        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-      },
+      by: ["category"],
+      _count: { category: true },
+      where: { category: { not: null } },
+      orderBy: { _count: { category: "desc" } },
+      take: 8,
+    }),
+    prisma.report.groupBy({
+      by: ["city"],
+      _count: { city: true },
+      orderBy: { _count: { city: "desc" } },
+      take: 10,
     }),
   ]);
 
   const successRate = totalReports > 0 ? Math.round((resolvedReports / totalReports) * 100) : 0;
 
-  // Regroupement par jour pour le graphique (30 derniers jours)
-  const dailyMap = new Map<string, number>();
-  for (const row of last30days) {
-    const day = new Date(row.createdAt).toISOString().slice(0, 10);
-    dailyMap.set(day, (dailyMap.get(day) ?? 0) + row._count);
+  // Evolution mensuelle (12 derniers mois)
+  const monthlyMap = new Map<string, number>();
+  for (const r of last365days) {
+    const month = r.createdAt.toISOString().slice(0, 7); // YYYY-MM
+    monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + 1);
   }
-  const dailySeries = Array.from(dailyMap.entries())
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const monthlySeries = Array.from(monthlyMap.entries())
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  // Temps moyen entre déclaration et résolution
+  let avgResolutionDays: number | null = null;
+  if (resolvedWithDates.length > 0) {
+    const totalMs = resolvedWithDates.reduce(
+      (sum, r) => sum + (r.updatedAt.getTime() - r.createdAt.getTime()),
+      0
+    );
+    avgResolutionDays = Math.round((totalMs / resolvedWithDates.length / (1000 * 60 * 60 * 24)) * 10) / 10;
+  }
+
+  const categoryBreakdown = categoryRows.map((r) => ({
+    category: r.category ?? "Autre",
+    count: r._count.category,
+  }));
+
+  const cityBreakdown = await Promise.all(
+    cityRows.map(async (r) => ({
+      city: r.city,
+      total: r._count.city,
+      resolved: await prisma.report.count({ where: { city: r.city, status: "RESOLU" } }),
+    }))
+  );
 
   return NextResponse.json({
     totalUsers,
     totalReports,
     resolvedReports,
     successRate,
+    avgResolutionDays,
     byType,
-    dailySeries,
+    monthlySeries,
+    categoryBreakdown,
+    cityBreakdown,
   });
 }

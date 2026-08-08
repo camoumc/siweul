@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { Flame, MapPin } from "lucide-react";
 import { REPORT_TYPE_ORDER, REPORT_TYPES, type ReportTypeKey } from "@/lib/reportConfig";
 import type { MapReport } from "@/components/ReportsMap";
 
@@ -12,6 +13,7 @@ const ReportsMap = dynamic(() => import("@/components/ReportsMap"), {
 
 export default function CartePage() {
   const [type, setType] = useState("");
+  const [heatmap, setHeatmap] = useState(false);
   const [reports, setReports] = useState<MapReport[]>([]);
 
   const load = useCallback(async () => {
@@ -45,10 +47,39 @@ export default function CartePage() {
             {REPORT_TYPES[t as ReportTypeKey].shortLabel}
           </button>
         ))}
-        <span className="ml-auto text-xs text-text-muted">{reports.length} résultat(s)</span>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs text-text-muted">{reports.length} résultat(s)</span>
+          <div className="flex items-center gap-1 rounded-full border border-border p-1">
+            <button
+              onClick={() => setHeatmap(false)}
+              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${!heatmap ? "bg-ink text-white" : "text-text-muted"}`}
+            >
+              <MapPin size={12} /> Points
+            </button>
+            <button
+              onClick={() => setHeatmap(true)}
+              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${heatmap ? "bg-ink text-white" : "text-text-muted"}`}
+            >
+              <Flame size={12} /> Carte thermique
+            </button>
+          </div>
+        </div>
       </div>
+
+      {heatmap && (
+        <div className="flex items-center gap-4 border-b border-border bg-paper-2 px-6 py-2 text-xs text-text-muted">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-signal" /> Zones de pertes
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-found" /> Zones de restitutions
+          </span>
+        </div>
+      )}
+
       <div className="flex-1">
-        <ReportsMap reports={reports} />
+        <ReportsMap reports={reports} heatmap={heatmap} />
       </div>
     </div>
   );

@@ -51,6 +51,7 @@ model User {
   notifications Notification[]
   badges        UserBadge[]
   flagsFiled    ReportFlag[]
+  claimsFiled   OwnershipClaim[]
   payments      Payment[]
   passwordResetTokens PasswordResetToken[]
 
@@ -170,6 +171,7 @@ model Report {
   matchesAsB    MatchScore[] @relation("MatchB")
   conversations Conversation[]
   flags         ReportFlag[]
+  claims        OwnershipClaim[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -411,4 +413,29 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// ============================================================
+// VERIFICATION DE PROPRIETE (avant restitution d'un objet trouve)
+// ============================================================
+
+enum ClaimStatus {
+  EN_ATTENTE
+  CONFIRME
+  INSUFFISANT
+  REJETE
+}
+
+model OwnershipClaim {
+  id             String      @id @default(cuid())
+  reportId       String
+  report         Report      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  claimantId     String
+  claimant       User        @relation(fields: [claimantId], references: [id])
+  providedDetail String      // ce que le reclamant fournit comme preuve (IMEI, code, description...)
+  score          Int         // 0-100, calcule automatiquement
+  status         ClaimStatus @default(EN_ATTENTE)
+  createdAt      DateTime    @default(now())
+
+  @@index([reportId])
 }

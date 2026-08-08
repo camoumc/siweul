@@ -33,10 +33,40 @@ const notoArabic = Noto_Naskh_Arabic({
   weight: ["400", "500", "600", "700"],
 });
 
+const BASE_URL = process.env.NEXTAUTH_URL ?? "https://www.siweul.pro";
+
 export const metadata: Metadata = {
-  title: "SIWEUL — Retrouver ensemble",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "SIWEUL — Retrouver ensemble",
+    template: "%s | SIWEUL",
+  },
   description:
-    "SIWEUL est la plateforme communautaire pour retrouver objets perdus, personnes disparues, animaux égarés, véhicules volés et documents administratifs.",
+    "SIWEUL est la plateforme communautaire pour retrouver objets perdus, personnes disparues, animaux égarés, véhicules volés et documents administratifs au Sénégal.",
+  keywords: [
+    "objet perdu Sénégal",
+    "objet trouvé Dakar",
+    "personne disparue",
+    "animal perdu",
+    "document perdu",
+    "véhicule volé",
+    "SIWEUL",
+  ],
+  openGraph: {
+    title: "SIWEUL — Retrouver ensemble",
+    description: "La plateforme communautaire pour retrouver objets perdus, personnes disparues, animaux et documents au Sénégal.",
+    url: BASE_URL,
+    siteName: "SIWEUL",
+    locale: "fr_SN",
+    type: "website",
+    images: [{ url: "/brand/logo-full.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SIWEUL — Retrouver ensemble",
+    description: "La plateforme communautaire pour retrouver objets perdus, personnes disparues, animaux et documents au Sénégal.",
+    images: ["/brand/logo-full.png"],
+  },
 };
 
 export default async function RootLayout({
