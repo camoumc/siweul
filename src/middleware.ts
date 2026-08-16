@@ -1,12 +1,24 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { decode } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
+  const secret =
+    process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
+  if (!secret) {
+    console.error("AUTH_SECRET / NEXTAUTH_SECRET est manquant.");
+    return NextResponse.redirect(new URL("/connexion", request.url));
+  }
+
   const token = await decode({
-    token: request.cookies.get("authjs.session-token")?.value,
-    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET!,
+    token:
+      request.cookies.get("__Secure-authjs.session-token")?.value ??
+      request.cookies.get("authjs.session-token")?.value,
+    secret,
+    salt: "authjs.session-token",
   });
+
+  const isLoggedIn = !!token;
 
   const path = request.nextUrl.pathname;
 
@@ -19,26 +31,25 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/parametres") ||
     path.startsWith("/notifications");
 
+  // Routes administrateur
   if (isAdminRoute) {
-    if (!token) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/connexion";
-      url.searchParams.set("callbackUrl", path);
-      return NextResponse.redirect(url);
-    }
+    const role = token?.role as string | undefined;
 
-    const role = token.role as string | undefined;
-
-    if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/", request.url));
+    if (
+      !isLoggedIn ||
+      !["ADMIN", "SUPER_ADMIN"].includes(role ?? "")
+    ) {
+      return NextResponse.redirect(
+        new URL("/connexion", request.url)
+      );
     }
   }
 
-  if (isDashboardRoute && !token) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/connexion";
-    url.searchParams.set("callbackUrl", path);
-    return NextResponse.redirect(url);
+  // Routes utilisateur connectées
+  if (isDashboardRoute && !isLoggedIn) {
+    return NextResponse.redirect(
+      new URL("/connexion", request.url)
+    );
   }
 
   return NextResponse.next();
