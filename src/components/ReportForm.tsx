@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import PhotoUploader from "@/components/PhotoUploader";
 import { REPORT_TYPES, SENEGAL_CITIES, type ReportTypeKey } from "@/lib/reportConfig";
 
@@ -30,6 +30,13 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
   }, [status]);
 
   const [photos, setPhotos] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    category: string;
+    color: string | null;
+    brand: string | null;
+  } | null>(null);
   const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -65,6 +72,32 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
   });
 
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
+
+  const analyzeFirstPhoto = async () => {
+    if (photos.length === 0) return;
+    setAiLoading(true);
+    setAiError("");
+    setAiSuggestion(null);
+    const res = await fetch("/api/ai/analyze-photo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: photos[0] }),
+    });
+    const data = await res.json();
+    setAiLoading(false);
+    if (!res.ok) {
+      setAiError(data.error ?? "Analyse indisponible pour le moment.");
+      return;
+    }
+    setAiSuggestion({ category: data.category, color: data.color, brand: data.brand });
+  };
+
+  const applyAiSuggestion = () => {
+    if (!aiSuggestion) return;
+    if (aiSuggestion.color) set("color", aiSuggestion.color);
+    if (aiSuggestion.brand) set("brand", aiSuggestion.brand);
+    setAiSuggestion(null);
+  };
 
   if (status === "unauthenticated") {
     return (
@@ -297,6 +330,33 @@ export default function ReportForm({ type }: { type: ReportTypeKey }) {
           <div className="mt-1">
             <PhotoUploader urls={photos} onChange={setPhotos} />
           </div>
+          {photos.length > 0 && (
+            <button
+              type="button"
+              onClick={analyzeFirstPhoto}
+              disabled={aiLoading}
+              className="mt-2 flex items-center gap-1.5 rounded-full border border-signal/40 px-3 py-1.5 text-xs font-semibold text-signal hover:bg-signal/5 disabled:opacity-60"
+            >
+              {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              {aiLoading ? "Analyse en cours..." : "Pré-remplir avec l'IA à partir de la photo"}
+            </button>
+          )}
+          {aiError && <p className="mt-1 text-xs text-text-muted">{aiError}</p>}
+          {aiSuggestion && (
+            <div className="mt-2 rounded-xl bg-paper-2 p-3 text-xs text-text">
+              <p className="font-semibold">L&apos;IA propose : {aiSuggestion.category}
+                {aiSuggestion.color ? `, ${aiSuggestion.color}` : ""}
+                {aiSuggestion.brand ? `, ${aiSuggestion.brand}` : ""}
+              </p>
+              <button
+                type="button"
+                onClick={applyAiSuggestion}
+                className="mt-1.5 rounded-full bg-signal px-3 py-1 text-[11px] font-semibold text-white"
+              >
+                Appliquer aux champs ci-dessus
+              </button>
+            </div>
+          )}
         </div>
 
         {isFound && (

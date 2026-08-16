@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Camera } from "lucide-react";
 import ReportCard, { type ReportCardData } from "@/components/ReportCard";
 import { REPORT_TYPE_ORDER, REPORT_TYPES, SENEGAL_CITIES, type ReportTypeKey } from "@/lib/reportConfig";
 
@@ -46,11 +47,19 @@ function BrowseContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-signal">Recherche</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold text-text">
-          {total} signalement{total > 1 ? "s" : ""} actif{total > 1 ? "s" : ""}
-        </h1>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-signal">Recherche</p>
+          <h1 className="mt-2 font-display text-3xl font-semibold text-text">
+            {total} signalement{total > 1 ? "s" : ""} actif{total > 1 ? "s" : ""}
+          </h1>
+        </div>
+        <Link
+          href="/rechercher/photo"
+          className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white hover:bg-ink-2"
+        >
+          <Camera size={15} /> Rechercher par photo
+        </Link>
       </div>
 
       <div className="mb-8 flex flex-col gap-3">

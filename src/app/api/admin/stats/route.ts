@@ -62,6 +62,45 @@ export async function GET() {
     .map(([month, count]) => ({ month, count }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
+  // Prevision du mois prochain par regression lineaire simple sur les 6
+  // derniers mois (methode des moindres carres) — une projection
+  // statistique transparente, pas un modele "boite noire".
+  const recentMonths = monthlySeries.slice(-6);
+  let forecastNextMonth: number | null = null;
+  if (recentMonths.length >= 3) {
+    const n = recentMonths.length;
+    const xs = recentMonths.map((_, i) => i);
+    const ys = recentMonths.map((m) => m.count);
+    const xMean = xs.reduce((a, b) => a + b, 0) / n;
+    const yMean = ys.reduce((a, b) => a + b, 0) / n;
+    const num = xs.reduce((sum, x, i) => sum + (x - xMean) * (ys[i] - yMean), 0);
+    const den = xs.reduce((sum, x) => sum + (x - xMean) ** 2, 0);
+    const slope = den !== 0 ? num / den : 0;
+    const intercept = yMean - slope * xMean;
+    forecastNextMonth = Math.max(0, Math.round(intercept + slope * n));
+  }
+
+  // Tendance par categorie : 30 derniers jours vs 30 jours precedents
+  const now = new Date();
+  const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const d60 = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const categoryTrends = await Promise.all(
+    categoryRows.slice(0, 6).map(async (r) => {
+      const [recent, previous] = await Promise.all([
+        prisma.report.count({ where: { category: r.category, createdAt: { gte: d30 } } }),
+        prisma.report.count({ where: { category: r.category, createdAt: { gte: d60, lt: d30 } } }),
+      ]);
+      let trend: "hausse" | "stable" | "baisse" = "stable";
+      if (previous === 0 && recent > 0) trend = "hausse";
+      else if (previous > 0) {
+        const change = (recent - previous) / previous;
+        if (change > 0.15) trend = "hausse";
+        else if (change < -0.15) trend = "baisse";
+      }
+      return { category: r.category ?? "Autre", recent, previous, trend };
+    })
+  );
+
   // Temps moyen entre déclaration et résolution
   let avgResolutionDays: number | null = null;
   if (resolvedWithDates.length > 0) {
@@ -95,5 +134,7 @@ export async function GET() {
     monthlySeries,
     categoryBreakdown,
     cityBreakdown,
+    forecastNextMonth,
+    categoryTrends,
   });
 }

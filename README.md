@@ -49,6 +49,18 @@ interactive, messagerie securisee, gamification et back-office admin complet.
   objet trouvé : le réclamant décrit une preuve (IMEI, code, détail unique), comparée
   automatiquement au détail caché/numéro de série renseigné par le trouveur — qui valide
   ensuite manuellement (le score aide à la décision, il ne l'automatise pas entièrement).
+- **Recherche inversée par photo** (`/rechercher/photo`) : l'IA (Claude Vision) analyse
+  une photo uploadée et cherche automatiquement les annonces correspondantes avec un
+  score de similarité. Suggestion IA (catégorie/couleur/marque) disponible aussi dans le
+  formulaire de signalement. Nécessite `ANTHROPIC_API_KEY` (voir section 5sexies).
+- **Notifications SMS/WhatsApp** pour les cas urgents (personne disparue, véhicule volé,
+  document officiel) en plus de l'email/notification in-app lors d'une correspondance IA
+  — les cas normaux restent in-app + email pour ne pas spammer ni générer de coûts
+  inutiles. Nécessite un compte Twilio (voir section 5septies).
+- **Tendances & prévisions** (`/admin`) : projection statistique du volume de
+  signalements du mois prochain (régression linéaire sur 6 mois) et tendance
+  hausse/stable/baisse par catégorie (30 derniers jours vs 30 jours précédents) — un
+  vrai calcul statistique transparent, pas une boîte noire.
 - **Programme Ambassadeurs** (`/ambassadeur`) : candidature, validation par l'admin,
   dashboard avec statistiques et historique des gains. Commission gagnée automatiquement
   à chaque signalement résolu publié ou aidé par l'ambassadeur. Classement dédié sur
@@ -290,6 +302,32 @@ Quelques axes d'amélioration que je recommande, par ordre de priorité :
    signalement...) pour la traçabilité.
 7. **Tests automatisés** (au moins sur le moteur de correspondance et les routes de
    paiement) avant toute évolution future du code, pour éviter les régressions.
+
+## 5sexies. Configurer la reconnaissance d'image (Claude Vision)
+
+1. Créez une clé sur [console.anthropic.com](https://console.anthropic.com) (Settings >
+   API Keys).
+2. Ajoutez `ANTHROPIC_API_KEY` sur Vercel.
+3. C'est tout — `/rechercher/photo` et le bouton "Pré-remplir avec l'IA" dans le
+   formulaire de signalement s'activent automatiquement.
+
+Facturé à l'usage par Anthropic (quelques centimes par photo analysée). Sans la clé, ces
+deux fonctionnalités affichent un message clair au lieu de planter.
+
+## 5septies. Configurer SMS/WhatsApp (Twilio)
+
+1. Créez un compte sur [twilio.com](https://twilio.com), récupérez `Account SID` et
+   `Auth Token` (Console > Account Info).
+2. Achetez un numéro Twilio (SMS) et/ou activez le sandbox WhatsApp (gratuit pour les
+   tests, un numéro dédié payant pour la production).
+3. Ajoutez sur Vercel :
+   - `TWILIO_ACCOUNT_SID`
+   - `TWILIO_AUTH_TOKEN`
+   - `TWILIO_PHONE_NUMBER` (format `+1234567890`, pour les SMS)
+   - `TWILIO_WHATSAPP_NUMBER` (format `whatsapp:+14155238886`, pour WhatsApp)
+
+Sans ces variables, les envois SMS/WhatsApp sont simplement journalisés dans les logs
+Vercel au lieu d'échouer — le reste du site continue de fonctionner normalement.
 
 ## 6. Prochaines etapes suggerees
 

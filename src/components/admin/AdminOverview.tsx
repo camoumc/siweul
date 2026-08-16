@@ -13,7 +13,7 @@ import {
   Bar,
 } from "recharts";
 import { REPORT_TYPES, type ReportTypeKey } from "@/lib/reportConfig";
-import { Users, FileWarning, CheckCircle2, TrendingUp, Clock, Download } from "lucide-react";
+import { Users, FileWarning, CheckCircle2, TrendingUp, TrendingDown, Minus, Clock, Download } from "lucide-react";
 
 interface Stats {
   totalUsers: number;
@@ -25,6 +25,8 @@ interface Stats {
   monthlySeries: { month: string; count: number }[];
   categoryBreakdown: { category: string; count: number }[];
   cityBreakdown: { city: string; total: number; resolved: number }[];
+  forecastNextMonth: number | null;
+  categoryTrends: { category: string; recent: number; previous: number; trend: "hausse" | "stable" | "baisse" }[];
 }
 
 function monthLabel(ym: string) {
@@ -201,6 +203,35 @@ export default function AdminOverview() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-white p-5 lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-base font-semibold text-text">Tendances & prévisions</h2>
+            {stats.forecastNextMonth !== null && (
+              <span className="rounded-full bg-signal/10 px-3 py-1 text-xs font-semibold text-signal">
+                Projection mois prochain : ~{stats.forecastNextMonth} signalements
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-text-muted">
+            Projection par régression linéaire sur les 6 derniers mois. Tendance par
+            catégorie : 30 derniers jours vs les 30 jours précédents.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {stats.categoryTrends.map((c) => {
+              const Icon = c.trend === "hausse" ? TrendingUp : c.trend === "baisse" ? TrendingDown : Minus;
+              const color = c.trend === "hausse" ? "text-alert" : c.trend === "baisse" ? "text-found" : "text-text-muted";
+              return (
+                <div key={c.category} className="flex items-center justify-between rounded-xl bg-paper-2 px-3 py-2 text-sm">
+                  <span className="font-medium text-text">{c.category}</span>
+                  <span className={`flex items-center gap-1 text-xs font-semibold ${color}`}>
+                    <Icon size={13} /> {c.recent} ({c.trend})
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

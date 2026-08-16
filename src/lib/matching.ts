@@ -14,7 +14,7 @@ import type { Report } from "@prisma/client";
  */
 
 // Distance de Levenshtein normalisée -> similarité texte simple (0-1)
-function textSimilarity(a?: string | null, b?: string | null): number {
+export function textSimilarity(a?: string | null, b?: string | null): number {
   if (!a || !b) return 0;
   const s1 = a.toLowerCase().trim();
   const s2 = b.toLowerCase().trim();
@@ -31,7 +31,7 @@ function textSimilarity(a?: string | null, b?: string | null): number {
   return common / Math.max(words1.size, words2.size);
 }
 
-function haversineDistanceKm(
+export function haversineDistanceKm(
   lat1?: number | null,
   lon1?: number | null,
   lat2?: number | null,
